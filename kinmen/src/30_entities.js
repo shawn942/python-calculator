@@ -188,7 +188,7 @@ function vCircles(v) { if (v.def.two) return [{ x: v.pos.x, z: v.pos.z, r: 0.55 
 /* 物理驅動的車（玩家、警車、滑行中）對建築/車/人的碰撞 */
 function vehicleCollide(v, dt) {
   v.hitCd -= dt; let impact = 0;
-  for (const c of vCircles(v)) { const q = { x: c.x, z: c.z }, h = resolveCircle(q, c.r); if (h) { v.pos.x += q.x - c.x; v.pos.z += q.z - c.z; const vn = v.vx * h.nx + v.vz * h.nz; if (vn < 0) { impact = Math.max(impact, -vn); v.hitP = { x: c.x - h.nx * c.r, z: c.z - h.nz * c.r }; v.vx -= h.nx * vn * 1.25; v.vz -= h.nz * vn * 1.25; } } }
+  for (const c of vCircles(v)) { const q = { x: c.x, z: c.z }, h = resolveCircle(q, c.r, true); if (h) { v.pos.x += q.x - c.x; v.pos.z += q.z - c.z; const vn = v.vx * h.nx + v.vz * h.nz; if (vn < 0) { impact = Math.max(impact, -vn); v.hitP = { x: c.x - h.nx * c.r, z: c.z - h.nz * c.r }; v.vx -= h.nx * vn * 1.25; v.vz -= h.nz * vn * 1.25; } } }
   for (const o of vehicles) { if (o === v) continue; const dx = o.pos.x - v.pos.x, dz = o.pos.z - v.pos.z; if (dx * dx + dz * dz > 64) continue;
     for (const a of vCircles(v)) for (const b of vCircles(o)) { const ex = b.x - a.x, ez = b.z - a.z, d = Math.hypot(ex, ez), m = a.r + b.r; if (d >= m || d < 1e-4) continue; const nx = ex / d, nz = ez / d, pen = m - d, rel = (v.vx - o.vx) * nx + (v.vz - o.vz) * nz;
       if (v.def.tank && !o.def.tank) { o.pos.x += nx * pen; o.pos.z += nz * pen; if (o.ai) { o.ai.ox += nx * pen; o.ai.oz += nz * pen; o.ai.stun = 2; } if (rel > 1) { o.hp -= rel * 4; if (o.hp <= 0 && !o.burn) o.burn = 1.2; if (v.hitCd <= 0) { v.hitCd = 0.4; sfx('thud', 0.4); if (v.driver === 'player') crime(1); } } continue; }

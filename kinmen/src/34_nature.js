@@ -41,7 +41,7 @@ async function loadNature() { if (!NAT.on) return; mNat = new THREE.MeshStandard
 const NAT_TREES = ['round', 'round2', 'tall', 'wide'], NAT_PINES = ['pine', 'pine2'];
 /* 影子：葉片卡片不投影（alpha test 的陰影很貴），改由一顆看不見的簡單球體代投 */
 const mNatSh = new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false });
-function natBatches(batch) { if (!NAT.ready) return; for (const k in NAT.g) batch('nat_' + k, NAT.g[k].geo, mNat, false); batch('nat_sh', GEO.ico, mNatSh, true); }
+function natBatches(batch) { if (!NAT.ready) return; for (const k in NAT.g) batch('nat_' + k, NAT.g[k].geo, mNat, false); batch('nat_sh', new THREE.OctahedronGeometry(1, 0), mNatSh, true); }
 const _natTint = new THREE.Color();
 function natTint(h = 0.27) { return _natTint.setHSL(h + rr(-0.05, 0.05), rr(0.2, 0.45), rr(0.72, 0.95)).clone(); }
 function natTree(x, z, kind, s) { // 回傳 false 代表用舊的程序化樹

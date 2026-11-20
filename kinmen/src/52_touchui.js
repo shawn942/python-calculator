@@ -51,5 +51,5 @@ function perfTick(now) {
   PERF.n++; if (!PERF.t) PERF.t = now; const dt = now - PERF.t; if (dt < 1000) return;
   const fps = PERF.n * 1000 / dt; PERF.n = 0; PERF.t = now; PERF.lo = Math.min(PERF.lo, fps); const M = renderer.info.memory;
   PERF.el.style.color = fps >= 45 ? '#8f8' : fps >= 25 ? '#fd6' : '#f77';
-  PERF.el.textContent = `FPS ${fps.toFixed(0)}（最低 ${PERF.lo.toFixed(0)}）・繪圖 ${PERF.calls}・三角形 ${(PERF.tris / 1000).toFixed(0)}k\n貼圖 ${M.textures}・解析度 ${renderer.getPixelRatio().toFixed(2)}x・${innerWidth}×${innerHeight}`;
+  PERF.el.textContent = `FPS ${fps.toFixed(0)}（最低 ${PERF.lo.toFixed(0)}）・繪圖 ${PERF.calls}・三角形 ${(PERF.tris / 1000).toFixed(0)}k\n貼圖 ${M.textures}・剔除 ${CULL.hidden}・解析度 ${renderer.getPixelRatio().toFixed(2)}x・${innerWidth}×${innerHeight}`;
 }

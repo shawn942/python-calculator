@@ -1,0 +1,27 @@
+/* =====================================================================
+   距離剔除：小東西（招牌、路燈、欄杆、雜物）離鏡頭太遠就不畫，車輛超過一定距離也不畫。
+   用 layers 做（不動 visible，遊戲邏輯自己開關 visible 的東西不受影響）。
+   可見距離 = max(最短距離, 物件半徑 × K)；畫質低時再打折。?nocull 可關閉比較。
+   ===================================================================== */
+const CULL = { on: !/nocull/.test(location.search), list: [], seen: 0, f: 0, K: 230, min: 230, veh: 320, hidden: 0, _v: new THREE.Vector3(), _m: new THREE.Matrix4() };
+function cullScan() { // 把新出現的頂層物件登記進來
+  const ch = scene.children; if (ch.length === CULL.seen) return; CULL.seen = ch.length;
+  const vg = new Set(vehicles.map(v => v.group)), bx = new THREE.Box3();
+  for (const o of ch) { if (o.userData._c) continue;
+    if (!o.isMesh) { // 群組（路人、店員、雕像、小型擺設）：用整體外框算大小，位置跟著群組走
+      if (o.isLight || o.isCamera || vg.has(o) || !o.children.length || o.userData.noCull) continue; o.userData._c = 1; bx.setFromObject(o); if (bx.isEmpty()) continue; const r = bx.getSize(CULL._v).length() / 2; if (!(r > 0) || r > 30) continue;
+      CULL.list.push({ o, grp: true, c: bx.getCenter(new THREE.Vector3()).sub(o.position), R: 0, d: Math.min(Math.max(CULL.min, r * CULL.K), 520), v: true }); continue; }
+    o.userData._c = 1; if (!o.frustumCulled || o.userData.noCull || !o.geometry) continue; const g = o.geometry; if (!g.boundingSphere) g.computeBoundingSphere(); if (!g.boundingSphere) continue;
+    let r, R, c;
+    if (o.isInstancedMesh) { if (!o.boundingSphere) o.computeBoundingSphere(); let ms = 0; const step = Math.max(1, Math.floor(o.count / 48)); for (let i = 0; i < o.count; i += step) { o.getMatrixAt(i, CULL._m); const e = CULL._m.elements; ms = Math.max(ms, Math.hypot(e[0], e[1], e[2]), Math.hypot(e[4], e[5], e[6]), Math.hypot(e[8], e[9], e[10])); } r = g.boundingSphere.radius * ms; R = o.boundingSphere.radius; c = o.boundingSphere.center.clone(); }
+    else { r = g.boundingSphere.radius * Math.max(o.scale.x, o.scale.y, o.scale.z); R = r; c = g.boundingSphere.center.clone(); }
+    if (!(r > 0) || r > 45) continue; // 大型物件（建築群、地形、道路）永遠畫
+    CULL.list.push({ o, c, R, d: r < 9 ? Math.min(Math.max(CULL.min, r * CULL.K), 700) : Math.max(950, r * 150), v: true }); } // 樹、路燈這類中小物件最遠 950 公尺（再遠有霧，看不清）
+}
+function cullUpdate() {
+  if (!CULL.on || (++CULL.f % 10 && CULL.f > 3)) return; if (CULL.f % 120 === 10 || !CULL.seen) cullScan();
+  const cp = camera.position, k = (Q.far || 1) * (60 / Math.max(20, camera.fov)), v3 = CULL._v; let hid = 0;
+  for (const e of CULL.list) { const o = e.o; if (e.grp) v3.copy(e.c).add(o.position); else v3.copy(e.c).applyMatrix4(o.matrixWorld); const dist = v3.distanceTo(cp) - e.R, vis = dist < e.d * k; if (!vis) hid++; if (vis !== e.v) { e.v = vis; if (e.grp) o.traverse(x => { if (vis) x.layers.enable(0); else x.layers.disable(0); }); else if (vis) o.layers.enable(0); else o.layers.disable(0); } }
+  const vd = CULL.veh * k; for (const v of vehicles) { const vis = v === player.veh || Math.hypot(v.pos.x - cp.x, v.pos.z - cp.z) < vd; if (!vis) hid++; if (vis !== (v._cv !== false)) { v._cv = vis; v.group.traverse(x => { if (vis) x.layers.enable(0); else x.layers.disable(0); }); } }
+  CULL.hidden = hid;
+}

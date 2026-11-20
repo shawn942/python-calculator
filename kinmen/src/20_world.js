@@ -8,12 +8,12 @@ function addBox(x, z, hw, hd, rot = 0) {
   for (let cx = Math.floor((x - c.r) / CCELL); cx <= Math.floor((x + c.r) / CCELL); cx++) for (let cz = Math.floor((z - c.r) / CCELL); cz <= Math.floor((z + c.r) / CCELL); cz++) { const k = ckey(cx, cz); let a = colHash.get(k); if (!a) colHash.set(k, a = []); a.push(c); }
   return c;
 }
-function resolveCircle(p, rad) {
+function resolveCircle(p, rad, thin = false) { // thin：車輛不會被細桿子（路燈、號誌、招牌桿）卡住
   let hit = null; const cx0 = Math.floor((p.x - rad) / CCELL), cx1 = Math.floor((p.x + rad) / CCELL), cz0 = Math.floor((p.z - rad) / CCELL), cz1 = Math.floor((p.z + rad) / CCELL);
   for (let a = cx0; a <= cx1; a++) for (let b = cz0; b <= cz1; b++) {
     const arr = colHash.get(ckey(a, b)); if (!arr) continue;
     for (const c of arr) {
-      if (c.off || (c.top !== undefined && p.y > c.top - 0.3)) continue; const dx = p.x - c.x, dz = p.z - c.z; if (dx * dx + dz * dz > (c.r + rad) * (c.r + rad)) continue;
+      if (c.off || (c.top !== undefined && p.y > c.top - 0.3) || (thin && c.hw < 0.36 && c.hd < 0.36)) continue; const dx = p.x - c.x, dz = p.z - c.z; if (dx * dx + dz * dz > (c.r + rad) * (c.r + rad)) continue;
       const lx = dx * c.cos - dz * c.sin, lz = dx * c.sin + dz * c.cos, qx = clamp(lx, -c.hw, c.hw), qz = clamp(lz, -c.hd, c.hd), ex = lx - qx, ez = lz - qz, d2 = ex * ex + ez * ez;
       if (d2 > rad * rad) continue; let nx, nz, pen;
       if (d2 > 1e-8) { const d = Math.sqrt(d2); nx = ex / d; nz = ez / d; pen = rad - d; }

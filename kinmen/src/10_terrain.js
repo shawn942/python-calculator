@@ -121,7 +121,7 @@ function flattenDisc(x, z, R, target = null) {
   return target;
 }
 
-let terrainMesh = null;
+let terrainMesh = null, TERRAIN_TILES = 0;
 const FIELDC = ['#b86f4a', '#c08a52', '#9cab55', '#c9b46a', '#a7623e', '#8fa64e', '#d0a85c', '#b5794c'].map(h => new THREE.Color(h)), FOREST = new THREE.Color('#3f6e35'), WETL = new THREE.Color('#6f8a6a'), MILC = new THREE.Color('#7d7a5c');
 function buildTerrainMesh() {
   const pos = new Float32Array(NX * NZ * 3), col = new Float32Array(NX * NZ * 3), uv = new Float32Array(NX * NZ * 2);
@@ -149,8 +149,14 @@ function buildTerrainMesh() {
   const detail = canvasTex(256, 256, gg => { const im = gg.createImageData(256, 256); for (let y = 0; y < 256; y++) for (let x = 0; x < 256; x++) { const n = pfbm(x / 256 * 16, y / 256 * 16, 16); const v = clamp(236 + (n - 0.47) * 90, 0, 255); const i = (y * 256 + x) * 4; im.data[i] = im.data[i + 1] = im.data[i + 2] = v; im.data[i + 3] = 255; } gg.putImageData(im, 0, 0); }, true);
   const pg = photoGray('grass', 226, 1.25), tm = new THREE.MeshStandardMaterial({ vertexColors: true, map: pg || detail, roughness: 0.96 });
   if (pg) { pg.repeat.set(4, 4); const nn = photoTex('grass_n', false, 4, 4); if (nn) { tm.normalMap = nn; tm.normalScale = new THREE.Vector2(0.6, 0.6); } }
-  terrainMesh = new THREE.Mesh(g, tm);
-  terrainMesh.receiveShadow = true; scene.add(terrainMesh);
+  /* 地形切成小塊（共用同一份頂點資料）：看不到的區塊不畫，整片深海的區塊直接不建 */
+  { const TS = 48, nrm = g.attributes.normal; let made = 0;
+    for (let tz = 0; tz < NZ - 1; tz += TS) for (let tx = 0; tx < NX - 1; tx += TS) { const x1 = Math.min(NX - 1, tx + TS), z1 = Math.min(NZ - 1, tz + TS); let h0 = 1e9, h1 = -1e9; for (let iz = tz; iz <= z1; iz++) for (let ix = tx; ix <= x1; ix++) { const h = HT[iz * NX + ix]; if (h < h0) h0 = h; if (h > h1) h1 = h; }
+      if (h1 < -4) continue; const ti = new Uint32Array((x1 - tx) * (z1 - tz) * 6); let q = 0; for (let iz = tz; iz < z1; iz++) for (let ix = tx; ix < x1; ix++) { const a = iz * NX + ix, b = a + 1, d = a + NX, e = d + 1; ti[q++] = a; ti[q++] = d; ti[q++] = b; ti[q++] = b; ti[q++] = d; ti[q++] = e; }
+      const tg = new THREE.BufferGeometry(); tg.setAttribute('position', g.attributes.position); tg.setAttribute('color', g.attributes.color); tg.setAttribute('uv', g.attributes.uv); tg.setAttribute('normal', nrm); tg.setIndex(new THREE.BufferAttribute(ti, 1));
+      const cx = TX0 + (tx + x1) / 2 * CELL, cz = TZ0 + (tz + z1) / 2 * CELL, hw = (x1 - tx) * CELL / 2, hd = (z1 - tz) * CELL / 2; tg.boundingSphere = new THREE.Sphere(new THREE.Vector3(cx, (h0 + h1) / 2, cz), Math.hypot(hw, hd, (h1 - h0) / 2)); tg.boundingBox = new THREE.Box3(new THREE.Vector3(cx - hw, h0, cz - hd), new THREE.Vector3(cx + hw, h1, cz + hd));
+      const m = new THREE.Mesh(tg, tm); m.receiveShadow = true; m.userData.noCull = true; m.name = 'terrain'; scene.add(m); if (!terrainMesh) terrainMesh = m; made++; }
+    TERRAIN_TILES = made; }
 }
 
 /* =====================================================================
@@ -195,7 +201,7 @@ const SITES = [[24.4478, 118.3229, 150], [24.4338, 118.3198, 105], [24.42491, 11
 const RUNWAY = { ...GW(24.4300, 118.3592), len: 380, wid: 30, rot: 0.468 }; RUNWAY.ux = Math.cos(RUNWAY.rot); RUNWAY.uz = -Math.sin(RUNWAY.rot); RUNWAY.vx = -Math.sin(RUNWAY.rot); RUNWAY.vz = -Math.cos(RUNWAY.rot); // u：跑道方向；v：朝北（航廈側）
 const APW = (u, v) => ({ x: RUNWAY.x + RUNWAY.ux * u + RUNWAY.vx * v, z: RUNWAY.z + RUNWAY.uz * u + RUNWAY.vz * v });
 let bridgeEdge = null;
-const ROADCELL = 30, roadHash = new Map();
+const ROADCELL = 30, roadHash = new Map(), SKIRT = new Map(); let ROAD_SKIRTS = 0;
 const rkey = (x, z) => (Math.floor(x / ROADCELL) + 400) * 2000 + Math.floor(z / ROADCELL) + 400;
 
 function buildRoadData() {
@@ -262,9 +268,16 @@ function buildRoadMeshes() {
     const n = e.pts.length, pos = new Float32Array(n * 6), uv = new Float32Array(n * 4), idx = []; const off = e.bridge ? 0.02 : 0.09 + (e.id % 4) * 0.012;
     e.pts.forEach((p, i) => { const rx = -p.tz, rz = p.tx; pos.set([p.x - rx * e.hw, p.y + off, p.z - rz * e.hw, p.x + rx * e.hw, p.y + off, p.z + rz * e.hw], i * 6); uv.set([0, i * e.step / 14, 1, i * e.step / 14], i * 4); if (i < n - 1) { const a = i * 2; idx.push(a, a + 1, a + 2, a + 1, a + 3, a + 2); } });
     const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setAttribute('uv', new THREE.BufferAttribute(uv, 2)); g.setIndex(idx); g.computeVertexNormals();
+    // 路肩邊坡：路面比旁邊地面高的地方補一道斜坡到地面，路不會像浮在空中的板子；斷頭路的盡頭也補上
+    if (!e.bridge && !e.tunnel) { const mid0 = e.pts[n >> 1], kk = Math.floor(mid0.x / 600) + ',' + Math.floor(mid0.z / 600); let S = SKIRT.get(kk); if (!S) SKIRT.set(kk, S = { p: [], i: [] });
+      const quad = (A, B, C, D) => { const b0 = S.p.length / 3; S.p.push(...A, ...B, ...C, ...D); S.i.push(b0, b0 + 1, b0 + 2, b0, b0 + 2, b0 + 3); }, W = 2.6, y0 = off - 0.04;
+      for (const s of [1, -1]) for (let i = 0; i < n - 1; i++) { const a = e.pts[i], b = e.pts[i + 1], ax = a.x - a.tz * s * e.hw, az = a.z + a.tx * s * e.hw, bx = b.x - b.tz * s * e.hw, bz = b.z + b.tx * s * e.hw, aox = ax - a.tz * s * W, aoz = az + a.tx * s * W, box = bx - b.tz * s * W, boz = bz + b.tx * s * W, ga = groundAt(aox, aoz), gb = groundAt(box, boz);
+        if (a.y + y0 - ga < 0.3 && b.y + y0 - gb < 0.3) continue; quad([ax, a.y + y0, az], [bx, b.y + y0, bz], [box, Math.min(b.y + y0, gb - 0.25), boz], [aox, Math.min(a.y + y0, ga - 0.25), aoz]); }
+      for (const [nd, p, dir] of [[e.a, e.pts[0], -1], [e.b, e.pts[n - 1], 1]]) { if (nd.edges.length !== 1) continue; const lx = p.x + p.tz * e.hw, lz = p.z - p.tx * e.hw, rx2 = p.x - p.tz * e.hw, rz2 = p.z + p.tx * e.hw, ox = p.tx * dir * W, oz = p.tz * dir * W, gl = groundAt(lx + ox, lz + oz), gr = groundAt(rx2 + ox, rz2 + oz); if (p.y + y0 - Math.min(gl, gr) < 0.3) continue; quad([lx, p.y + y0, lz], [rx2, p.y + y0, rz2], [rx2 + ox, Math.min(p.y + y0, gr - 0.25), rz2 + oz], [lx + ox, Math.min(p.y + y0, gl - 0.25), lz + oz]); } }
     // 依區塊合併成少數幾個網格（原本一條路一個 draw call）
     const mid = e.pts[n >> 1], key = (e.type === 'minor' ? 'n' : 'j') + Math.floor(mid.x / 600) + ',' + Math.floor(mid.z / 600); let ch = RCH.get(key); if (!ch) RCH.set(key, ch = { mat: e.type === 'minor' ? mMinor : mMajor, gs: [], es: [] }); ch.gs.push(g); ch.es.push(e);
   }
+  { const mSk = new THREE.MeshStandardMaterial({ color: 0x6f7d4c, roughness: 1, side: THREE.DoubleSide }); let nq = 0; for (const S of SKIRT.values()) { if (!S.i.length) continue; const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(S.p, 3)); g.setIndex(S.i); g.computeVertexNormals(); const m = new THREE.Mesh(g, mSk); m.receiveShadow = true; m.userData.noCull = true; m.name = 'skirt'; scene.add(m); nq += S.i.length / 6; } SKIRT.clear(); ROAD_SKIRTS = nq; }
   for (const ch of RCH.values()) { const m = new THREE.Mesh(mergeIdx(ch.gs), ch.mat); m.receiveShadow = true; scene.add(m); for (const e of ch.es) e.mesh = m; }
   const disc = new THREE.CircleGeometry(1, 28); disc.rotateX(-Math.PI / 2); const dch = new Map();
   for (const id in roadNodes) { const n = roadNodes[id]; if (n.edges.length < 2 && id !== 'A1' && id !== 'MF' && id !== 'SMO') continue; const hw = Math.max(...n.edges.map(e => e.hw)); const g = disc.clone(); g.scale(hw * 1.18, 1, hw * 1.18); g.translate(n.x, n.y + 0.16, n.z); { const P = g.attributes.position, U = g.attributes.uv; for (let i = 0; i < P.count; i++) U.setXY(i, P.getX(i) / 9, P.getZ(i) / 9); } const key = Math.floor(n.x / 600) + ',' + Math.floor(n.z / 600); let a = dch.get(key); if (!a) dch.set(key, a = []); a.push(g); }
