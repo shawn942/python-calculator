@@ -20,3 +20,16 @@ function townInfill() {
       else shophouse(x, z, rot, w, d, rand() < 0.3 ? 3 : 2, t.style === 'old' || rand() < 0.5 ? 'old' : 'city');
       INFILL.n++; } }
 }
+/* 路邊成排的機車（台灣街景的招牌）：純裝飾、不能騎、沒有碰撞，遠了自動不畫 */
+function townScooters() {
+  if (!INFILL.on) return; const Rz = new THREE.Matrix4().makeRotationZ(Math.PI / 2), T = (x, y, z) => new THREE.Matrix4().makeTranslation(x, y, z);
+  const geo = mergeGeos([[PG.box(0.34, 0.2, 1.2), '#ffffff', T(0, 0.4, 0)], [PG.box(0.34, 0.3, 0.62), '#ffffff', T(0, 0.6, -0.34)], [PG.box(0.3, 0.09, 0.64), '#1c1c1c', T(0, 0.8, -0.3)], [PG.box(0.36, 0.62, 0.1), '#ffffff', _PM(0, 0.72, 0.42, -0.25)], [PG.box(0.6, 0.05, 0.06), '#222222', T(0, 1.05, 0.34)], [PG.box(0.16, 0.1, 0.05), '#fff6c8', T(0, 0.93, 0.5)], [PG.box(0.14, 0.07, 0.04), '#c0241c', T(0, 0.7, -0.66)],
+    [PG.cyl(0.26, 0.26, 0.11, 10), '#1a1a1a', T(0, 0.26, 0.6).multiply(Rz)], [PG.cyl(0.26, 0.26, 0.12, 10), '#1a1a1a', T(0, 0.26, -0.6).multiply(Rz)]]);
+  batch('pscoot', geo, mVC, false); const cols = ['#d9d9d6', '#b3312c', '#27496d', '#3a3f48', '#e0c040', '#5a8f6a', '#f08a3c', '#ffffff', '#8a8f96'].map(c => new THREE.Color(c)); let n = 0;
+  for (const e of roadEdges) { if (e.bridge || e.tunnel) continue; let nextI = 3 + Math.floor(rand() * 5);
+    for (let i = 3; i < e.pts.length - 3; i++) { const p = e.pts[i]; if (p.town < 0 || i < nextI) continue; const t = TOWNS[p.town]; if (t.style !== 'city' && t.style !== 'old') continue; nextI = i + 4 + Math.floor(rand() * 6);
+      const s = rand() < 0.5 ? 1 : -1, nx = -p.tz * s, nz = p.tx * s, cnt = 3 + Math.floor(rand() * 5), off = e.hw + 2.2, yaw = Math.atan2(-nx, -nz) + rr(-0.12, 0.12);
+      for (let k = 0; k < cnt; k++) { const a = (k - (cnt - 1) / 2) * 0.78, x = p.x + nx * off + p.tx * a, z = p.z + nz * off + p.tz * a; if (!roadClear(x, z, 0.9, e) || !boxFree(x, z, 0.8) || (typeof doorClear === 'function' && !doorClear(x, z)) || PARKED.some(q => Math.hypot(q[1] - x, q[2] - z) < 3.5)) continue;
+        BT.pscoot.add(MX(x, groundAt(x, z), z, yaw + rr(-0.08, 0.08) + 0.3, 1, 1, 1), pick(cols)); n++; if (k === 2 && !INFILL.sample) INFILL.sample = [x, z, nx, nz]; } } }
+  INFILL.scooters = n;
+}

@@ -8,7 +8,7 @@ const settings = { q: ('ontouchstart' in window || navigator.maxTouchPoints > 0)
 try { Object.assign(settings, JSON.parse(localStorage.getItem('kinmen_settings') || '{}')); } catch (e) { }
 let Q = QUALITY[settings.q] || QUALITY.high;
 function applyQuality() {
-  Q = QUALITY[settings.q]; renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, Q.pr)); onResize();
+  Q = QUALITY[settings.q]; renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, Q.pr)); onResize(); ARES.k = 1; ARES.bad = ARES.good = 0;
   sun.castShadow = Q.shadow > 0; if (Q.shadow && sun.shadow.mapSize.x !== Q.shadow) { sun.shadow.mapSize.set(Q.shadow, Q.shadow); if (sun.shadow.map) { sun.shadow.map.dispose(); sun.shadow.map = null; } }
   if (MASTER) MASTER.gain.value = settings.vol; if (typeof setupPost === 'function') setupPost(); try { localStorage.setItem('kinmen_settings', JSON.stringify(settings)); } catch (e) { }
 }

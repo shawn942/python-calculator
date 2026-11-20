@@ -460,7 +460,7 @@ function buildWorld() {
   LIONS_LL.forEach(p => windLion(p[0], p[1]));
   for (const e of roadEdges) if (!e.bridge) lineTown(e);
   buildProps(); buildIslet(); buildTunnels(); buildLife();
-  hangShopSigns(); townInfill(); buildBeaches(); buildFoam();
+  hangShopSigns(); townInfill(); townScooters(); buildBeaches(); buildFoam();
   // 路燈
   for (const e of roadEdges) e.pts.forEach((p, i) => { if ((p.town < 0 && !e.bridge) || i % 8 !== 3) return; const s = (i >> 3) % 2 ? 1 : -1, rx = -p.tz * s, rz = p.tx * s, x = p.x + rx * (e.hw + 1.4), z = p.z + rz * (e.hw + 1.4), yaw = Math.atan2(-rx, -rz), y = e.bridge ? p.y : groundAt(x, z); if (!e.bridge && !boxFree(x, z, 0.5)) return; const m = MX(x, y - 0.1, z, yaw); BT.lamp.add(m); BT.lampHead.add(m); BT.pool.add(MX(x - rx * 2.6, (e.bridge ? p.y : groundAt(x - rx * 2.6, z - rz * 2.6)) + 0.22, z - rz * 2.6, 0, 13, 1, 13)); });
   // 行道樹
