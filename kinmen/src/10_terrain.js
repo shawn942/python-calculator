@@ -127,7 +127,7 @@ function buildTerrainMesh() {
   const pos = new Float32Array(NX * NZ * 3), col = new Float32Array(NX * NZ * 3), uv = new Float32Array(NX * NZ * 2);
   const C = h => new THREE.Color(h);
   const sand = C('#e2d3a8'), wet = C('#c9b98c'), deep = C('#3f6f78'), g1 = C('#7fa653'), g2 = C('#5d8a45'), dry = C('#b3ab6a'), soil = C('#b86f4a'), rock = C('#9a968c'), c = new THREE.Color();
-  const PAVET = TOWNS.filter(t => t.style === 'city' || t.style === 'old'), PAVEC = C('#aeaaa0');
+  const PAVET = TOWNS.filter(t => t.style === 'city' || t.style === 'old' || t.style === 'village'), PAVEC = C('#aeaaa0'), PAVEV = C('#b59f8c'); // 聚落是偏暖的石板／紅磚埕
   for (let iz = 0; iz < NZ; iz++) for (let ix = 0; ix < NX; ix++) {
     const i = iz * NX + ix, x = TX0 + ix * CELL, z = TZ0 + iz * CELL, h = HT[i], sd = SD[i];
     pos[i * 3] = x; pos[i * 3 + 1] = h; pos[i * 3 + 2] = z; uv[i * 2] = x / 26; uv[i * 2 + 1] = z / 26;
@@ -140,7 +140,7 @@ function buildTerrainMesh() {
       c.lerp(soil, smooth(0.6, 0.7, fbm(x * 0.006 + 40, z * 0.006 + 17)) * 0.8 * (1 - smooth(0.1, 0.3, slope)));
       c.lerp(rock, Math.max(smooth(0.32, 0.6, slope), smooth(34, 62, h) * 0.8));
       if (LU && LU[i]) { const cl = LU[i] & 7, vr = LU[i] >> 3; if (cl === 1) c.copy(FIELDC[vr & 7]).lerp(g1, 0.15 * fbm(x * 0.05, z * 0.05)); else if (cl === 2) c.lerp(FOREST, 0.65); else if (cl === 3) c.lerp(dry, 0.35); else if (cl === 4) c.copy(g1).lerp(g2, 0.3); else if (cl === 5) c.lerp(WETL, 0.6); else if (cl === 6) c.lerp(MILC, 0.45); else if (cl === 7) c.copy(sand); c.lerp(rock, smooth(0.32, 0.6, slope)); }
-      for (const t of PAVET) { const dd = Math.hypot(x - t.x, z - t.z); if (dd < t.r * 1.1) { c.lerp(PAVEC, smooth(t.r * 1.1, t.r * 0.82, dd) * (0.74 + 0.12 * fbm(x * 0.09, z * 0.09))); break; } } // 市區地面是水泥鋪面，不是草地
+      for (const t of PAVET) { const dd = Math.hypot(x - t.x, z - t.z); if (dd < t.r * 1.1) { if (t.style === 'village') c.lerp(PAVEV, smooth(t.r * 0.95, t.r * 0.55, dd) * (0.5 + 0.2 * fbm(x * 0.09, z * 0.09))); else c.lerp(PAVEC, smooth(t.r * 1.1, t.r * 0.82, dd) * (0.74 + 0.12 * fbm(x * 0.09, z * 0.09))); break; } } // 市區地面是水泥鋪面，不是草地
       c.lerp(sand, Math.max(1 - smooth(16, 52, sd), SANDW[i]));
     }
     col[i * 3] = c.r; col[i * 3 + 1] = c.g; col[i * 3 + 2] = c.b;
