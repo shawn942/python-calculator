@@ -8,10 +8,10 @@ function natTexture() {
     g.clearRect(0, 0, w, h);
     const inBlob = (x, y, cx) => { const dx = (x - cx) / 96, dy = (y - 128) / 120; return dx * dx + dy * dy < 1; };
     // 左：闊葉（先畫暗的再畫亮的，有前後層次）
-    const lv = []; for (let i = 0; i < 620; i++) { const x = rr(8, 196), y = rr(8, 248); if (inBlob(x, y, 102)) lv.push([x, y, rr(18, 46)]); } lv.sort((a, b) => a[2] - b[2]);
+    const lv = []; for (let i = 0; i < 620; i++) { const x = rr(8, 196), y = rr(8, 248); if (inBlob(x, y, 102)) lv.push([x, y, rr(26, 54)]); } lv.sort((a, b) => a[2] - b[2]);
     for (const [x, y, l] of lv) { g.save(); g.translate(x, y); g.rotate(rr(0, 6.28)); g.fillStyle = `hsl(${rr(82, 120)},${rr(36, 58)}%,${l}%)`; g.beginPath(); g.ellipse(0, 0, rr(7, 11), rr(3.2, 5.2), 0, 0, 6.28); g.fill(); g.strokeStyle = `hsla(95,40%,${l + 14}%,0.5)`; g.lineWidth = 0.8; g.beginPath(); g.moveTo(-7, 0); g.lineTo(7, 0); g.stroke(); g.restore(); }
     // 中：針葉（木麻黃／松）
-    const nd = []; for (let i = 0; i < 1500; i++) { const x = rr(212, 400), y = rr(8, 248); if (inBlob(x, y, 306)) nd.push([x, y, rr(14, 38)]); } nd.sort((a, b) => a[2] - b[2]);
+    const nd = []; for (let i = 0; i < 1500; i++) { const x = rr(212, 400), y = rr(8, 248); if (inBlob(x, y, 306)) nd.push([x, y, rr(22, 46)]); } nd.sort((a, b) => a[2] - b[2]);
     g.lineCap = 'round'; for (const [x, y, l] of nd) { const a = rr(0.9, 2.2), L = rr(12, 24); g.strokeStyle = `hsl(${rr(92, 128)},${rr(22, 40)}%,${l}%)`; g.lineWidth = rr(1.1, 1.9); g.beginPath(); g.moveTo(x, y); g.lineTo(x + Math.cos(a) * L, y + Math.sin(a) * L); g.stroke(); }
     // 右：樹皮
     g.fillStyle = '#6a5645'; g.fillRect(412, 0, 100, h); for (let i = 0; i < 260; i++) { g.fillStyle = `rgba(${Math.random() < 0.5 ? '30,20,12' : '170,150,125'},${rr(0.06, 0.22)})`; g.fillRect(rr(412, 510), rr(0, h), rr(1, 3), rr(10, 46)); }
@@ -26,7 +26,7 @@ function natBuild(kind) {
     let dx, dy, dz, l; do { dx = rr(-1, 1); dy = rr(-1, 1); dz = rr(-1, 1); l = Math.hypot(dx, dy, dz); } while (l > 1 || l < 0.05); dx /= l; dy /= l; dz /= l; const d = r * rr(0.35, 0.95), px = x + dx * d, py = y + dy * d * ry, pz = z + dz * d, s = r * rr(0.75, 1.15) * big;
     // 卡片的兩個軸：隨機朝向
     let ax = rr(-1, 1), ay = rr(-0.6, 0.6), az = rr(-1, 1); l = Math.hypot(ax, ay, az) || 1; ax /= l; ay /= l; az /= l; let bx = ay * dz - az * dy + rr(-0.3, 0.3), by = az * dx - ax * dz + 0.6, bz = ax * dy - ay * dx + rr(-0.3, 0.3); l = Math.hypot(bx, by, bz) || 1; bx /= l; by /= l; bz /= l;
-    const sh = clamp(0.62 + 0.3 * (dy * 0.5 + 0.5) + 0.28 * d / r, 0.6, 1.15), q = [];
+    const sh = clamp(0.78 + 0.3 * (dy * 0.5 + 0.5) + 0.26 * d / r, 0.78, 1.3), q = [];
     for (const [a, b, u, v] of [[-1, -1, 0, 0], [1, -1, 1, 0], [1, 1, 1, 1], [-1, 1, 0, 1]]) q.push(vert(px + (ax * a + bx * b) * s, py + (ay * a + by * b) * s, pz + (az * a + bz * b) * s, u0 + 0.01 + u * 0.38, 0.01 + v * 0.98, sh));
     I.push(q[0], q[1], q[2], q[0], q[2], q[3]); } };
   if (kind === 'round') { trunk(0.5, 0.045, 0.028); blob(0, 0.68, 0, 0.3, 22, 0); for (let k = 0; k < 5; k++) { const a = k * 1.257 + rr(-0.3, 0.3), R = rr(0.2, 0.27); blob(Math.cos(a) * R, rr(0.56, 0.7), Math.sin(a) * R, rr(0.19, 0.24), 12, 0); } }

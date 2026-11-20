@@ -33,3 +33,16 @@ function townScooters() {
         BT.pscoot.add(MX(x, groundAt(x, z), z, yaw + rr(-0.08, 0.08) + 0.3, 1, 1, 1), pick(cols)); n++; if (k === 2 && !INFILL.sample) INFILL.sample = [x, z, nx, nz]; } } }
   INFILL.scooters = n;
 }
+/* 電線桿與電線：市區沿路每隔一段立一根，桿與桿之間拉三條微微下垂的電線，部分有變壓器 */
+function townPoles() {
+  if (!INFILL.on) return; const cPole = new THREE.Color('#8d8a82'), cArm = new THREE.Color('#5d5a54'), cTr = new THREE.Color('#6f7478'), wire = []; let n = 0;
+  for (const e of roadEdges) { if (e.bridge || e.tunnel || e.len < 40) continue; const s = e.id % 2 ? 1 : -1; let prev = null;
+    for (let i = 2; i < e.pts.length - 2; i += 5) { const p = e.pts[i]; if (p.town < 0) { prev = null; continue; } const t = TOWNS[p.town]; if (t.style !== 'city' && t.style !== 'old') { prev = null; continue; }
+      const nx = -p.tz * s, nz = p.tx * s, x = p.x + nx * (e.hw + 0.9), z = p.z + nz * (e.hw + 0.9); if (!roadClear(x, z, 0.5, e) || !boxFree(x, z, 0.5) || (typeof doorClear === 'function' && !doorClear(x, z))) { prev = null; continue; }
+      const y = groundAt(x, z), H = 8.6, yaw = Math.atan2(p.tx, p.tz); BT.ccyl.add(MX(x, y, z, 0, 0.15, H, 0.15), cPole); BT.cbox.add(MX(x, y + H - 0.9, z, yaw, 0.1, 0.1, 1.9), cArm); BT.cbox.add(MX(x, y + H - 1.7, z, yaw, 0.09, 0.09, 1.4), cArm);
+      if (n % 4 === 1) BT.ccyl.add(MX(x + nx * 0.42, y + H - 3.4, z + nz * 0.42, 0, 0.3, 0.95, 0.3), cTr); addBox(x, z, 0.16, 0.16, 0); n++;
+      const tops = [-0.85, 0, 0.85].map(o => new THREE.Vector3(x + p.tx * 0 + nx * 0 + Math.sin(yaw + Math.PI / 2) * o, y + H - 0.82, z + Math.cos(yaw + Math.PI / 2) * o));
+      if (prev) for (let k = 0; k < 3; k++) { const a = prev[k], b = tops[k], m = a.clone().lerp(b, 0.5); m.y -= 0.55; wire.push(a, m, m, b); } prev = tops; } }
+  if (wire.length) { const lg = new THREE.BufferGeometry().setFromPoints(wire), l = new THREE.LineSegments(lg, new THREE.LineBasicMaterial({ color: 0x1c1c1c, transparent: true, opacity: 0.75 })); l.name = 'wires'; scene.add(l); }
+  INFILL.poles = n;
+}
