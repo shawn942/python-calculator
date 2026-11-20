@@ -347,6 +347,9 @@ function frame(now) {
 const tick = () => new Promise(r => setTimeout(r, 30));
 async function boot() {
   const L = t => { $('loadtext').textContent = t; };
+  { // 載入畫面的金門小知識
+    const tips = ['風獅爺是金門的守護神，立在村口鎮風止煞。', '貢糖是金門名產，用花生和麥芽糖反覆搥打製成。', '金門高粱酒以 58 度最有名。', '金門菜刀是用砲彈的鋼打造的。', '八二三砲戰發生在 1958 年。', '古寧頭戰役發生在 1949 年。', '翟山坑道是能讓小艇直接開進去的水道坑道。', '金門大橋連接大金門和烈嶼（小金門）。', '閩南古厝屋脊兩端高高翹起，叫做燕尾脊。', '洋樓是早年下南洋的金門人賺錢回鄉蓋的。', '卡住的時候：手機選單裡有「脫困」。', '想知道手機順不順：手機選單裡有「效能顯示」。'];
+    const d = document.createElement('p'); d.style.cssText = 'margin-top:18px;font-size:14px;opacity:.78;max-width:80vw;text-align:center'; d.textContent = '小知識：' + tips[Math.floor(Math.random() * tips.length)]; $('loading').appendChild(d); }
   try { await Promise.race([document.fonts.load(`800 40px "Noto Sans TC"`, '金門浯島風雲國立大學莒光樓酒廠機場橋' + SHOPS.join('') + (typeof OSM_PLACES !== 'undefined' ? OSM_PLACES.map(p => p[0]).join('') + OSM_ROADS.names.join('') : '')), new Promise(r => setTimeout(r, 1500))]); } catch (e) { }
   L('產生金門島地形…'); await loadDEM(); await loadLU(); await tick(); buildTerrainData();
   L('鋪設道路…'); await tick(); await loadPhotos().catch(() => { }); buildRoadData(); buildTerrainMesh(); buildRoadMeshes();
