@@ -194,6 +194,7 @@ function village(kx, ky, cols, rows, rot) {
   for (let r = 0; r < rows; r++) for (let q = 0; q < cols; q++) { const lx = (q - (cols - 1) / 2) * 13.5 + rr(-0.6, 0.6), lz = (r - (rows - 1) / 2) * 12.5; const x = cx + lx * c + lz * s, z = cz - lx * s + lz * c; if (sdAt(x, z) < 26 || groundAt(x, z) < 1.2 || inLake(x, z, 7) || !roadClear(x, z, 7) || !boxFree(x, z, 6.6)) continue; minnanHouse(x, z, rot, rr(10, 12), rr(7.5, 8.5)); }
   for (let i = 0; i < 5; i++) { const a = rr(0, 6.28), d = Math.max(cols, rows) * 9 + rr(4, 16), x = cx + Math.cos(a) * d, z = cz + Math.sin(a) * d; if (sdAt(x, z) > 20 && roadClear(x, z, 4) && boxFree(x, z, 4)) tree(x, z, 0, 1.2); }
 }
+const LT = {};
 function lineTown(e) {
   const next = { '-1': 0, '1': 0 }; const old = e.name === '模範街' || e.name === '沙美老街' || e.name === '莒光路';
   e.pts.forEach((p, i) => {
@@ -202,7 +203,7 @@ function lineTown(e) {
     for (const s of [-1, 1]) {
       if (dist < next[s]) continue; const style = (old || t.style === 'old') ? 'old' : 'city'; const w = style === 'old' ? rr(8, 10) : rr(7, 10), d = style === 'old' ? 10 : rr(11, 13), rx = -p.tz * s, rz = p.tx * s;
       const x = p.x + rx * (e.hw + 3.6 + d / 2), z = p.z + rz * (e.hw + 3.6 + d / 2);
-      if (sdAt(x, z) < 30 || groundAt(x, z) < 1 || inLake(x, z, d / 2) || !roadClear(x, z, d / 2 + 1.5, e) || !boxFree(x, z, w * 0.5)) { next[s] = dist + 3; continue; }
+      { const why = sdAt(x, z) < 30 ? 'sea' : groundAt(x, z) < 1 ? 'low' : inLake(x, z, d / 2) ? 'lake' : !roadClear(x, z, d / 2 + 1.5, e) ? 'road' : !boxFree(x, z, w * 0.5) ? 'box' : null; LT[why || 'ok'] = (LT[why || 'ok'] || 0) + 1; if (why) { next[s] = dist + 3; continue; } }
       { const st2 = style === 'old' || rand() < 0.5 ? 'old' : 'city'; shophouse(x, z, Math.atan2(-rx, -rz), w, d, st2 === 'old' ? 2 : (rand() < 0.35 ? 3 : 2), st2); } next[s] = dist + w + 0.4;
     }
   });
@@ -459,7 +460,7 @@ function buildWorld() {
   LIONS_LL.forEach(p => windLion(p[0], p[1]));
   for (const e of roadEdges) if (!e.bridge) lineTown(e);
   buildProps(); buildIslet(); buildTunnels(); buildLife();
-  hangShopSigns(); buildBeaches(); buildFoam();
+  hangShopSigns(); townInfill(); buildBeaches(); buildFoam();
   // 路燈
   for (const e of roadEdges) e.pts.forEach((p, i) => { if ((p.town < 0 && !e.bridge) || i % 8 !== 3) return; const s = (i >> 3) % 2 ? 1 : -1, rx = -p.tz * s, rz = p.tx * s, x = p.x + rx * (e.hw + 1.4), z = p.z + rz * (e.hw + 1.4), yaw = Math.atan2(-rx, -rz), y = e.bridge ? p.y : groundAt(x, z); if (!e.bridge && !boxFree(x, z, 0.5)) return; const m = MX(x, y - 0.1, z, yaw); BT.lamp.add(m); BT.lampHead.add(m); BT.pool.add(MX(x - rx * 2.6, (e.bridge ? p.y : groundAt(x - rx * 2.6, z - rz * 2.6)) + 0.22, z - rz * 2.6, 0, 13, 1, 13)); });
   // 行道樹
