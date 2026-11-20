@@ -1,0 +1,5 @@
+D=lambda js: K('__KINMEN__.'+js)
+print(D("actGo('釣魚')"), flush=True)
+print('a', K("1+1"), flush=True)
+D('sim(0.1)'); print('b', flush=True)
+print(K("document.body.innerText.length"), flush=True)

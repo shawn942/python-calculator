@@ -1,0 +1,2 @@
+{"name":"浯島風雲 Kinmen Open World","short_name":"浯島風雲","start_url":"./index.html","scope":"./","display":"fullscreen","orientation":"landscape","background_color":"#0b0f14","theme_color":"#0b0f14","lang":"zh-Hant",
+ "icons":[{"src":"icon192.png","sizes":"192x192","type":"image/png"},{"src":"icon512.png","sizes":"512x512","type":"image/png"},{"src":"icon512.png","sizes":"512x512","type":"image/png","purpose":"maskable"}]}

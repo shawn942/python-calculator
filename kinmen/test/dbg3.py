@@ -1,0 +1,11 @@
+D=lambda js: K('__KINMEN__.'+js)
+pg.on('pageerror', lambda e: print('PAGEERR', e, flush=True))
+for kind in ['thief','help']:
+  K("__KINMEN__.teleport('jincheng')"); D('sim(2)'); D(f"ev('{kind}')"); D('sim(1)'); D('evWin()'); D('sim(0.5)'); print(kind, 'done', D('evSt()'), flush=True)
+K("__KINMEN__.teleport('jincheng')"); print('tp', flush=True)
+for i in range(8): D('sim(0.25)'); print(' s', i, K('__KINMEN__.state()')['peds'], flush=True)
+print('ev', D("ev('crash')"), flush=True)
+for i in range(8): D('sim(0.25)'); print(' c', i, flush=True)
+print('evst', D('evSt()'), flush=True)
+print('win', K("(()=>{const t=performance.now(); __KINMEN__.evWin(); return performance.now()-t})()"), flush=True)
+for i in range(8): D('sim(0.1)'); print(' w', i, flush=True)

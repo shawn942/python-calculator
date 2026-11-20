@@ -1,0 +1,8 @@
+D=lambda js: K('__KINMEN__.'+js)
+D("tunEnter('地雷主題館')"); pg.wait_for_timeout(2500); D('sim(0.3)')
+pg.screenshot(path=out+'/mine0.png')
+D('tunWalk(25)'); D('sim(0.3)'); pg.screenshot(path=out+'/mine1.png')
+D('tunWalk(57)'); D('sim(0.5)'); pg.wait_for_timeout(2500); D('sim(0.5)')
+st=D('state()'); print('after', st['x'], st['z'])
+P={p[0]:p for p in K('__KINMEN__.placesAll()')}; _,x,z,r=P['勇士堡・鐵漢堡']; print('fortsite', x, z)
+pg.screenshot(path=out+'/mine2.png')

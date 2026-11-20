@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8"><link rel="icon" href="data:,">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>浯島風雲 Kinmen Open World</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+body.photo > *:not(canvas):not(#toast):not(#fade){visibility:hidden!important}body.photo #toast{visibility:visible}
+  :root { --ink:#f4efe2; --gold:#ffd23f; --red:#c0392b; --panel:rgba(12,18,24,.72); }
+  * { box-sizing:border-box; }
+  html,body { margin:0; height:100%; overflow:hidden; background:#0b1118; color:var(--ink); font-family:"Noto Sans TC","Microsoft JhengHei","PingFang TC",sans-serif; -webkit-user-select:none; user-select:none; touch-action:none; }
+  #game { position:fixed; inset:0; width:100%; height:100%; display:block; }
+  #hud { position:fixed; inset:0; pointer-events:none; opacity:0; transition:opacity .6s; text-shadow:0 2px 6px rgba(0,0,0,.75); }
+  #hud.show { opacity:1; }
+  #tr { position:absolute; top:16px; right:20px; text-align:right; }
+  #clock { font-weight:700; font-size:20px; letter-spacing:.06em; font-variant-numeric:tabular-nums; }
+  #money { font-weight:900; font-size:32px; color:#9be28b; font-variant-numeric:tabular-nums; line-height:1.1; }
+  #delta { font-weight:800; font-size:18px; height:22px; opacity:0; transition:opacity .3s; }
+  #delta.show { opacity:1; } #delta.plus { color:#c9f7bf; } #delta.minus { color:#ff8a7a; }
+  #stars i { font-style:normal; font-size:26px; color:rgba(255,255,255,.22); margin-left:2px; }
+  #stars i.on { color:var(--gold); } #stars.flash i.on { animation:fl .5s steps(2) infinite; }
+  @keyframes fl { 50% { opacity:.25; } }
+  #bars { position:absolute; left:20px; bottom:12px; width:200px; display:flex; gap:4px; } #hpbar, #armorbar { flex:1; height:8px; background:rgba(0,0,0,.55); border-radius:2px; overflow:hidden; } #hp { height:100%; width:100%; background:#5cb85c; } #armor { height:100%; width:0; background:#4aa3df; }
+  #pauseBtn { position:absolute; left:14px; top:62px; pointer-events:auto; width:34px; height:30px; border:0; border-radius:6px; background:rgba(12,18,24,.6); color:var(--ink); font-size:18px; cursor:pointer; }
+  #pause { position:fixed; inset:0; background:rgba(6,10,14,.82); display:none; z-index:25; align-items:center; justify-content:center; flex-direction:column; } #pause.show { display:flex; } #pause h2 { font-size:44px; font-weight:900; font-style:italic; letter-spacing:.12em; margin:0 0 18px; }
+  #pauseBody { display:flex; flex-direction:column; gap:10px; min-width:min(420px,90vw); } #pauseBody button { font:inherit; font-weight:800; font-size:15px; padding:10px 14px; border:0; border-radius:8px; background:rgba(255,255,255,.12); color:var(--ink); cursor:pointer; } #pauseBody button:hover { background:rgba(255,255,255,.22); } #pauseBody button.big { background:var(--gold); color:#16110a; font-size:19px; } #pauseBody button.on { background:var(--gold); color:#16110a; } #pauseBody button.warn { background:rgba(192,57,43,.5); }
+  #pauseBody .row { display:flex; gap:8px; align-items:center; } #pauseBody .row span { width:96px; font-weight:800; opacity:.85; } #pauseBody .row button { flex:1; } #pauseBody .stats { font-size:14px; opacity:.85; text-align:center; padding:4px 0; }
+  #weapon { font-weight:800; font-size:17px; margin-top:6px; } #loot { font-weight:900; font-size:18px; color:#f1c40f; }
+  #cross { position:absolute; left:50%; top:50%; width:22px; height:22px; margin:-11px 0 0 -11px; display:none; } #cross.show { display:block; } #cross::before, #cross::after { content:''; position:absolute; background:rgba(255,255,255,.9); box-shadow:0 0 2px #000; } #cross::before { left:10px; top:0; width:2px; height:22px; clip-path:polygon(0 0,100% 0,100% 32%,0 32%,0 68%,100% 68%,100% 100%,0 100%); } #cross::after { top:10px; left:0; height:2px; width:22px; clip-path:polygon(0 0,32% 0,32% 100%,0 100%,0 0,68% 0,100% 0,100% 100%,68% 100%,68% 0); }
+  #prog { position:absolute; left:50%; top:62%; width:260px; height:12px; margin-left:-130px; background:rgba(0,0,0,.6); border-radius:6px; overflow:hidden; display:none; } #prog div { height:100%; width:0; background:var(--gold); }
+  #banner { position:absolute; left:0; right:0; top:30%; text-align:center; opacity:0; pointer-events:none; } #banner b { display:block; font-size:58px; font-weight:900; font-style:italic; color:var(--gold); letter-spacing:.08em; } #banner span { font-size:22px; font-weight:800; } #banner.show { animation:bn 5s ease forwards; } @keyframes bn { 0% { opacity:0; transform:scale(1.15);} 10% { opacity:1; transform:none;} 80% { opacity:1;} 100% { opacity:0;} }
+  #menu { position:fixed; left:50%; top:50%; transform:translate(-50%,-50%); background:rgba(12,18,24,.92); border-radius:14px; padding:16px 20px; min-width:340px; display:none; z-index:12; } #menu.show { display:block; } #menu h4 { margin:0 0 10px; font-size:19px; color:var(--gold); } #menu div { display:flex; gap:10px; align-items:center; padding:8px 6px; border-top:1px solid rgba(255,255,255,.12); cursor:pointer; font-weight:700; } #menu div:hover { background:rgba(255,255,255,.08); } #menu div b { background:var(--ink); color:#111; border-radius:4px; min-width:22px; text-align:center; } #menu div i { font-style:normal; opacity:.7; font-size:13px; flex:1; } #menu div em { font-style:normal; color:#9be28b; font-variant-numeric:tabular-nums; } #menu p { margin:10px 0 0; font-size:12px; opacity:.7; }
+  #goal { position:absolute; left:58px; top:58px; max-width:340px; font-size:15px; font-weight:700; line-height:1.5; } #goal b { display:block; color:var(--gold); font-size:13px; letter-spacing:.15em; }
+  #letter { position:fixed; inset:0; pointer-events:none; z-index:9; } #letter::before, #letter::after { content:''; position:absolute; left:0; right:0; height:0; background:#000; transition:height .5s; } #letter::before { top:0; } #letter::after { bottom:0; } #letter.show::before, #letter.show::after { height:11vh; }
+  #dlg { position:fixed; left:50%; bottom:13vh; transform:translateX(-50%); width:min(760px,92vw); display:none; gap:14px; align-items:flex-start; background:rgba(10,14,18,.9); border-radius:12px; padding:14px 18px; z-index:11; text-shadow:none; } #dlg.show { display:flex; }
+  #dlg i { flex:none; width:54px; height:54px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-style:normal; font-weight:900; font-size:24px; color:#fff; border:2px solid rgba(255,255,255,.6); } #dlg b { color:var(--gold); font-size:15px; } #dlg p { margin:4px 0 0; font-size:18px; font-weight:700; line-height:1.55; } #dlg small { position:absolute; right:14px; bottom:6px; font-size:11px; opacity:.55; }
+  #timer { font-weight:800; font-size:18px; color:var(--gold); margin-top:8px; font-variant-numeric:tabular-nums; }
+  #minimap { position:absolute; left:20px; bottom:28px; width:200px; height:200px; border-radius:50%; box-shadow:0 6px 24px rgba(0,0,0,.5); }
+  #speed { position:absolute; left:236px; bottom:28px; font-weight:900; font-size:24px; font-variant-numeric:tabular-nums; }
+  #zone { position:absolute; right:24px; bottom:22px; text-align:right; opacity:0; }
+  #zone b { display:block; font-size:34px; font-weight:900; font-style:italic; letter-spacing:.04em; } #zone span { font-size:15px; font-weight:700; opacity:.85; letter-spacing:.2em; }
+  #zone.show { animation:zn 5s ease forwards; } @keyframes zn { 0% { opacity:0; transform:translateX(16px);} 8% { opacity:1; transform:none;} 80% { opacity:1;} 100% { opacity:0;} }
+  #subtitle { position:absolute; left:50%; bottom:92px; transform:translateX(-50%); max-width:min(760px,86vw); text-align:center; font-size:19px; font-weight:700; line-height:1.5; background:var(--panel); padding:10px 18px; border-radius:10px; opacity:0; transition:opacity .4s; text-shadow:none; }
+  #subtitle.show { opacity:1; } #subtitle b { color:var(--gold); }
+  #prompt { position:absolute; left:50%; bottom:40px; transform:translateX(-50%); font-size:16px; font-weight:700; background:var(--panel); padding:7px 14px; border-radius:8px; opacity:0; transition:opacity .2s; text-shadow:none; white-space:nowrap; }
+  #prompt.show { opacity:1; } #prompt b { display:inline-block; min-width:22px; text-align:center; background:var(--ink); color:#111; border-radius:4px; padding:0 5px; margin:0 3px; }
+  #toast { position:absolute; left:50%; top:18%; transform:translateX(-50%); font-size:22px; font-weight:900; opacity:0; transition:opacity .3s; white-space:nowrap; } #toast.show { opacity:1; }
+  #hurt { position:fixed; inset:0; pointer-events:none; box-shadow:inset 0 0 160px rgba(200,30,20,.8); opacity:0; transition:opacity .2s; } #hurt.show { opacity:1; }
+  #fade { position:fixed; inset:0; background:#05080c; display:flex; align-items:center; justify-content:center; opacity:0; pointer-events:none; transition:opacity .7s; z-index:30; } #fade.show { opacity:1; }
+  #fade span { font-size:72px; font-weight:900; letter-spacing:.3em; color:#e9584a; }
+  #keys { position:absolute; left:20px; top:16px; font-size:13px; font-weight:700; opacity:.8; }
+  #help { position:fixed; left:20px; top:44px; background:var(--panel); border-radius:10px; padding:12px 16px; font-size:14px; line-height:1.9; display:none; z-index:10; } #help.show { display:block; }
+  #help b { display:inline-block; min-width:54px; color:var(--gold); }
+  .overlay { position:fixed; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:20; }
+  #loading { background:#0b1118; } #loading h1, #start h1 { font-size:clamp(44px,9vw,96px); font-weight:900; letter-spacing:.14em; margin:0; font-style:italic; }
+  #loading p { opacity:.75; font-weight:700; }
+  #start { display:none; background:linear-gradient(180deg,rgba(8,12,18,.15),rgba(8,12,18,.78)); } #start.show { display:flex; }
+  #start h2 { margin:6px 0 22px; font-size:clamp(14px,2.2vw,20px); letter-spacing:.5em; font-weight:700; opacity:.9; }
+  #start .card { background:var(--panel); border-radius:14px; padding:16px 22px; font-size:14.5px; line-height:1.95; max-width:min(640px,90vw); display:grid; grid-template-columns:1fr 1fr; gap:0 26px; }
+  #start .card b { color:var(--gold); display:inline-block; min-width:74px; }
+  #startBtn { margin-top:22px; font:inherit; font-size:22px; font-weight:900; letter-spacing:.3em; padding:14px 46px 14px 52px; border:0; border-radius:999px; background:var(--gold); color:#16110a; cursor:pointer; }
+  #startBtn:hover { filter:brightness(1.08); }
+  #resetBtn { margin-top:10px; font:inherit; font-size:13px; font-weight:700; padding:6px 16px; border:1px solid rgba(255,255,255,.4); border-radius:999px; background:transparent; color:var(--ink); cursor:pointer; opacity:.8; }
+  #start small { margin-top:14px; opacity:.7; font-weight:500; }
+  #bigmap { position:fixed; inset:0; background:rgba(6,10,14,.88); display:none; flex-direction:column; align-items:center; justify-content:center; z-index:15; } #bigmap.show { display:flex; }
+  #mapwrap { display:flex; gap:14px; align-items:flex-start; } #ft { display:flex; flex-direction:column; gap:6px; max-height:80vh; overflow:auto; } #ft h5 { margin:0 0 2px; font-size:15px; letter-spacing:.3em; color:var(--gold); } #ft button { font:inherit; font-size:13.5px; font-weight:700; text-align:left; padding:7px 12px; border:0; border-radius:8px; background:rgba(255,255,255,.12); color:var(--ink); cursor:pointer; white-space:nowrap; } #ft button:hover { background:var(--gold); color:#16110a; }
+  @media (max-width:900px) { #mapwrap { flex-direction:column; align-items:center; } #ft { flex-direction:row; flex-wrap:wrap; max-width:94vw; } }
+  #bigmap h3 { margin:0 0 10px; font-size:20px; letter-spacing:.3em; } #bigcv { display:block; transform-origin:0 0; } #cvbox { overflow:hidden; border-radius:10px; box-shadow:0 10px 40px rgba(0,0,0,.6); touch-action:none; position:relative; } #bigmap p { margin:10px 0 0; font-size:13px; opacity:.8; }
+  #touch { display:none; position:fixed; inset:0; pointer-events:none; z-index:8; }
+  #stick { position:absolute; left:180px; bottom:22px; width:116px; height:116px; border-radius:50%; background:rgba(255,255,255,.12); border:2px solid rgba(255,255,255,.3); pointer-events:auto; touch-action:none; }
+  #nub { position:absolute; left:32px; top:32px; width:50px; height:50px; border-radius:50%; background:rgba(255,255,255,.55); }
+  .tb { position:absolute; width:60px; height:60px; border-radius:50%; background:rgba(12,18,24,.6); border:2px solid rgba(255,255,255,.4); color:#fff; font:900 15px inherit; display:flex; align-items:center; justify-content:center; pointer-events:auto; touch-action:none; -webkit-user-select:none; }
+  #btnF { right:22px; bottom:22px; width:66px; height:66px; } #btnA { right:98px; bottom:22px; } #btnJ { right:22px; bottom:98px; } #btnE { right:98px; bottom:96px; } #btnG { right:172px; bottom:22px; width:52px; height:52px; }
+  #btnM, #btnP, #btnQ { top:10px; width:44px; height:44px; font-size:12.5px; } #btnM { right:190px; } #btnP { right:240px; } #btnQ { right:290px; }
+  @media (pointer:coarse) { #keys { display:none; } #minimap { width:140px; height:140px; left:12px; bottom:22px; } #bars { left:12px; width:140px; bottom:8px; } #speed { left:12px; bottom:170px; font-size:17px; } #subtitle { bottom:auto; top:58px; font-size:13.5px; max-width:min(560px,62vw); padding:7px 12px; } #prompt { bottom:auto; top:118px; font-size:13px; } #zone b { font-size:22px; } #zone { bottom:auto; top:120px; } #goal { top:60px; left:60px; font-size:13px; max-width:240px; } #money { font-size:24px; } #dlg p { font-size:15px; } #banner b { font-size:40px; } #pauseBtn { top:10px; left:10px; } }
+  @media (orientation:portrait) { #stick { left:24px; bottom:200px; } #btnM, #btnP, #btnQ { top:auto; bottom:170px; } #btnM { right:22px; } #btnP { right:72px; } #btnQ { right:122px; } #btnJ { bottom:98px; } }
+  @media (max-width:720px) { #start .card { grid-template-columns:1fr; } #keys { display:none; } #minimap { width:140px; height:140px; left:12px; bottom:22px; } #bars { left:12px; width:140px; bottom:8px; } #speed { left:164px; } #zone b { font-size:24px; } #subtitle { font-size:15px; bottom:170px; } }
+#bigmap .legend span{margin-right:14px;font-weight:700}
+#hud, #touch { left:env(safe-area-inset-left,0px); right:env(safe-area-inset-right,0px); top:env(safe-area-inset-top,0px); bottom:env(safe-area-inset-bottom,0px); }
+html, body { background:#000; }
+</style>
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="浯島風雲">
+<link rel="apple-touch-icon" href="icon180.png">
+<meta name="theme-color" content="#0b0f14">
+</head>
+<body>
+<canvas id="game"></canvas>
+<div id="hurt"></div>
+<div id="hud">
+  <div id="keys">Tab 操作說明　M 地圖</div>
+  <div id="tr"><div id="clock">16:24</div><div id="money">$3,000</div><div id="delta"></div><div id="stars"></div><div id="weapon"></div><div id="loot"></div><div id="timer"></div></div>
+  <div id="goal"></div>
+  <div id="cross"></div><div id="prog"><div></div></div><div id="banner"></div>
+  <canvas id="minimap" width="400" height="400"></canvas>
+  <div id="bars"><div id="hpbar"><div id="hp"></div></div><div id="armorbar"><div id="armor"></div></div></div>
+  <button id="pauseBtn" title="暫停（Esc）">☰</button>
+  <div id="speed"></div>
+  <div id="zone"></div>
+  <div id="toast"></div>
+  <div id="subtitle"></div>
+  <div id="prompt"></div>
+</div>
+<div id="menu"></div><div id="letter"></div><div id="dlg"></div>
+<div id="help">
+  <div><b>W A S D</b>走路／開車（方向鍵也可以）</div><div><b>滑鼠拖曳</b>轉動視角</div><div><b>Shift</b>跑步</div><div><b>空白鍵</b>跳／手煞車（甩尾）</div>
+  <div><b>F</b>上下車／船／飛機、搶車</div><div><b>E</b>進門／接任務／搶劫／購買</div><div><b>T</b>計程車載客</div><div><b>滑鼠左鍵</b>出拳／開槍　<b>右鍵</b>瞄準</div><div><b>1–5 / Q / 滾輪</b>切換武器　<b>G</b>手榴彈</div><div><b>C</b>蹲下（靠牆＝掩護）　<b>Ctrl</b>翻滾</div><div><b>K</b>拍照模式（隱藏介面）</div><div><b>P</b>手機　<b>V</b>換電台</div><div><b>大地圖</b>點一下設導航點</div><div><b>Esc</b>暫停・畫質・音量</div><div><b>T（坐警車）</b>警察任務</div><div><b>戰車</b>左鍵開砲（古寧頭）</div><div><b>飛機</b>W/S 油門、A/D 轉向、↓或空白鍵拉升、↑或Shift 俯衝</div><div><b>H</b>喇叭　<b>N</b>快轉時間</div><div><b>R</b>卡住時回到道路　<b>M</b>全島地圖</div><div><b>空中跳機</b>飛機上按 F 跳傘，空白鍵開傘</div><div><b>車頂</b>對著車按空白鍵翻上去</div><div><b>手機</b>委託・打工・安全屋</div><div><b>改車</b>開進金城的「修」字圈</div><div><b>大膽島</b>九宮碼頭搭交通船，或地圖傳送</div><div><b>你家</b>金寧鄉頂埔下 201 號：客廳、麻將桌、廚房、廁所、二三樓房間、保險箱、頂樓平台</div><div><b>生態圖鑑</b>手機查看：鸕鶿、水獺、鱟、白鷺、蜂虎、戴勝，到現場按 E 拍照</div><div><b>季節</b>手機切換，候鳥、草色、海浪、天氣跟著變</div><div><b>自行車賽</b>中山紀念林門口報名</div><div><b>迎城隍</b>白天到金城浯島城隍廟按 E</div><div><b>採石蚵</b>古寧頭海邊石蚵田，白天按 E</div><div><b>小吃</b>廣東粥（早上）、燒餅、芋頭冰、蚵仔麵線、蚵嗲，吃了回血</div><div><b>博餅</b>金城城隍廟前擲骰子，秋天獎金加倍</div><div><b>貢糖 DIY</b>模範街攤位，指針到綠色按 E</div><div><b>公車</b>各鄉鎮綠色站牌按 E，$12 搭到其他站</div><div><b>釣魚</b>水頭、九宮、新湖碼頭邊按 E 拋竿，咬餌時快按 E</div><div><b>酒廠</b>白天參觀品酒（喝完別開車）、買高粱禮盒</div><div><b>砲操表演</b>白天到獅山砲陣地按 E</div><div><b>打招呼</b>靠近路人按 E，聽聽金門話</div><div><b>地雷館</b>小金門勇士堡、鐵漢堡門口紫圈進坑道</div><div style="opacity:.7;font-size:12px"><b>角色模型</b>Quaternius《Ultimate Modular Men / Women》CC0</div><div style="opacity:.7;font-size:12px"><b>地圖資料</b>道路 © OpenStreetMap contributors（ODbL）・地形 Copernicus DEM GLO-30</div>
+</div>
+<div id="bigmap"><h3>金門全島地圖</h3><div id="mapwrap"><div id="cvbox"><canvas id="bigcv"></canvas></div><div id="ft"><h5>傳送</h5></div></div><p class="legend"><span style="color:#3ccf6e">● $ 銀行</span><span style="color:#e67e22">● 槍 軍品店</span><span style="color:#5dade2">● 店 商店</span><span style="color:#ff9f43">● 家 安全屋</span><span style="color:#ffd23f">● ★ 目標</span><span style="color:#f4efe2">◆ 景點（滑鼠移上去看名稱）</span><span style="color:#b07be0">━ 導航路線</span>　點地圖設定導航・滾輪或雙指縮放、拖曳移動・按 M 關閉</p></div>
+<div id="touch"><div id="stick"><div id="nub"></div></div><div class="tb" id="btnF">車</div><div class="tb" id="btnA">攻擊</div><div class="tb" id="btnE">互動</div><div class="tb" id="btnJ">跳</div><div class="tb" id="btnM">圖</div><div class="tb" id="btnQ">武器</div><div class="tb" id="btnP">手機</div><div class="tb" id="btnG">💣</div></div>
+<div id="pause"><h2>暫停</h2><div id="pauseBody"></div></div>
+<div id="fade"><span></span></div>
+<div class="overlay" id="start">
+  <h1>浯島風雲</h1><h2>KINMEN OPEN WORLD · 原型</h2>
+  <div class="card">
+    <div><b>W A S D</b>走路／開車／開船</div><div><b>滑鼠</b>轉視角（點一下畫面鎖定）</div><div><b>F</b>上下車・船・飛機</div><div><b>Shift</b>跑步</div>
+    <div><b>空白鍵</b>跳／手煞車</div><div><b>E</b>進門・任務・搶劫・購買</div><div><b>左鍵 / 右鍵</b>開槍・出拳 / 瞄準</div><div><b>1–5、Q</b>切換武器</div><div><b>M</b>地圖・傳送・導航</div><div><b>P</b>手機　<b>V</b>電台</div><div><b>G</b>手榴彈　<b>C</b>蹲下　<b>Ctrl</b>翻滾</div><div><b>T</b>計程車　<b>N</b>快轉時間</div>
+  </div>
+  <button id="startBtn">開始遊戲</button><button id="resetBtn">清除存檔重新開始</button>
+  <small>十二章劇情主線（約 1–1.5 小時）· 真實海岸線與五鄉鎮 · 七個坑道秘境 · 大膽島 · 安全屋與改車 · 手機委託與隨機事件 · 跳傘 · 生態圖鑑與四季 · 迎城隍 · 自行車賽</small>
+</div>
+<div class="overlay" id="loading"><h1>浯島風雲</h1><p id="loadtext">載入中…</p></div>
+<script type="module" src="./game.js"></script>
+<script>if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js").catch(() => {});</script>
+</body>
+</html>

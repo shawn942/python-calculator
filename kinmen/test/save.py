@@ -1,0 +1,6 @@
+D=lambda js: K('__KINMEN__.'+js)
+K("__KINMEN__.addMoney ? 0 : 0")
+m0=D('state()')['money']; print('money', m0)
+K("document.dispatchEvent(new Event('visibilitychange'))")
+K("window.dispatchEvent(new Event('pagehide'))")
+print(K("JSON.parse(localStorage.getItem('kinmen_save2')||'null') && JSON.parse(localStorage.getItem('kinmen_save2')).money"))

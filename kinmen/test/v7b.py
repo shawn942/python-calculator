@@ -1,0 +1,11 @@
+S=lambda: K('__KINMEN__.state()')
+D=lambda js: K('__KINMEN__.'+js)
+def shot(n): pg.wait_for_timeout(900); pg.screenshot(path=out+f'/v7_{n}.png')
+cx,cz=-2727,1092
+D('dgo()'); pg.wait_for_timeout(2200); D('setTime(20)'); D('sim(3)'); print('neon', D('neon()'))
+D(f"free({(cx-110)/150},{-(cz-140)/150},18,{(cx-16)/150},{-(cz-86)/150},6)"); D('sim(0.3)'); shot('neon_sea'); D('free(null)'); D('setTime(14)'); D('sim(1)')
+D(f"free({(cx+60)/150},{-(cz-10)/150},14,{(cx)/150},{-(cz-5)/150},3)"); D('sim(0.3)'); shot('neck'); D('free(null)')
+print('ft JG9', D("ft('JG9')")); pg.wait_for_timeout(2600); D('sim(0.5)'); print(' zone', S()['zone'], 'money', S()['money'], 'prompt', K("document.querySelector('#prompt') && document.querySelector('#prompt').textContent"))
+D("key('KeyE',true)"); D('sim(0.1)'); D("key('KeyE',false)"); pg.wait_for_timeout(2800); D('sim(0.6)'); print(' after ferry zone', S()['zone'], 'money', S()['money'])
+D('cam(-1.5708,0.15)'); D("key('KeyW',true)"); D('sim(5)'); D("key('KeyW',false)"); s=S(); print(' walked', s['x'], s['z'], s['y'], s['zone']); shot('walk')
+D('dpier()'); D('sim(0.4)'); print(' prompt', K("document.querySelector('#prompt').textContent"))

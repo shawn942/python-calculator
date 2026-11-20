@@ -1,0 +1,5 @@
+D=lambda js: K('__KINMEN__.'+js)
+D('setTime(10)'); D('teleport("jincheng")'); D('sim(8)')
+print(D('busBoardT()')); D('sim(12)'); pg.wait_for_timeout(2500); pg.screenshot(path=out+'/busride2.png')
+print(D('interact()')); D('sim(1)')
+pg.keyboard.press('KeyM'); pg.wait_for_timeout(1500); pg.screenshot(path=out+'/busmap.png')

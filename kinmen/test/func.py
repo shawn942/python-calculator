@@ -1,0 +1,20 @@
+S=lambda: K('__KINMEN__.state()')
+D=lambda: K('__KINMEN__.dbg()')
+print('--- drive scooter'); s0=S(); print('enter',K('__KINMEN__.enterNearest()')); K("__KINMEN__.key('KeyW',true)"); K('__KINMEN__.sim(6)'); s1=S(); print('speed',s1['speed'],'moved',round(((s1['x']-s0['x'])**2+(s1['z']-s0['z'])**2)**.5,1),'zone',s1['zone'])
+K("__KINMEN__.key('KeyA',true)"); K('__KINMEN__.sim(1.5)'); K("__KINMEN__.key('KeyA',false)"); K("__KINMEN__.key('KeyW',false)"); K("__KINMEN__.key('Space',true)"); K('__KINMEN__.sim(4)'); K("__KINMEN__.key('Space',false)"); print('after brake speed',S()['speed']); K("__KINMEN__.key('KeyF',true)"); K("__KINMEN__.key('KeyF',false)"); print('exited ->',S()['inVehicle'])
+print('--- walk'); s0=S(); K("__KINMEN__.key('KeyW',true)"); K('__KINMEN__.sim(3)'); K("__KINMEN__.key('KeyW',false)"); s1=S(); print('walked',round(((s1['x']-s0['x'])**2+(s1['z']-s0['z'])**2)**.5,1))
+print('--- deliver mission'); sp=D()['spots']['deliver']; K(f"__KINMEN__.goto({sp['x']/150},{-sp['z']/150},0)"); K('__KINMEN__.sim(0.5)'); print('interact',K('__KINMEN__.interact()'),S()['mission']); K("__KINMEN__.spawn('sedan')"); print('enter',K('__KINMEN__.enterNearest()'))
+m0=S()['money']
+for i in range(3):
+    K('__KINMEN__.sim(1.2)'); d=D(); print(' stage',d['stage'],'target',d['target']['label'],'route pts',d['route'],'timer',round(d['timer'])); K(f"__KINMEN__.warpVeh({d['target']['x']+3},{d['target']['z']+3})"); K('__KINMEN__.sim(0.5)')
+print(' done mission=',S()['mission'],'money +',S()['money']-m0)
+pg.wait_for_timeout(600); pg.screenshot(path=out+'/f_deliver_done.png')
+print('--- taxi'); K("__KINMEN__.goto(-6.3,0.3,3.0)"); K("__KINMEN__.spawn('taxi')"); K('__KINMEN__.sim(0.2)'); print('enter',K('__KINMEN__.enterNearest()')); K("__KINMEN__.key('KeyT',true)"); K("__KINMEN__.key('KeyT',false)"); K('__KINMEN__.sim(1.2)'); d=D(); print(' taxi',S()['taxi'],'target',d['target']['label'],'route',d['route']); m0=S()['money']
+K(f"__KINMEN__.warpVeh({d['target']['x']+2},{d['target']['z']+2})"); K('__KINMEN__.sim(0.6)'); d=D(); print(' dest',d['target']['label'],'route',d['route']); pg.wait_for_timeout(500); pg.screenshot(path=out+'/f_taxi.png'); K(f"__KINMEN__.warpVeh({d['target']['x']+2},{d['target']['z']+2})"); K('__KINMEN__.sim(0.6)'); print(' fare +',S()['money']-m0,'next',D()['target']['label'])
+K("__KINMEN__.key('KeyT',true)"); K("__KINMEN__.key('KeyT',false)"); print(' taxi off',S()['taxi'])
+print('--- lions'); l=D()['lion0']; K("__KINMEN__.key('KeyF',true)"); K("__KINMEN__.key('KeyF',false)"); K(f"__KINMEN__.goto({(l[0]+3)/150},{-(l[1]+3)/150},0)"); K('__KINMEN__.sim(0.3)'); print(' lions',S()['lions'],'money',S()['money'])
+print('--- race'); sp=D()['spots']['race']; K(f"__KINMEN__.goto({sp['x']/150},{-sp['z']/150},0)"); K('__KINMEN__.sim(0.3)'); print(' interact',K('__KINMEN__.interact()'),S()['mission'],D()['target']['label'],'route',D()['route']); K('__KINMEN__.sim(1.2)'); print(' route',D()['route'])
+print('--- routes', K("__KINMEN__.route('nqu','shanhou')"), K("__KINMEN__.route('lieyu','shanwai')"), K("__KINMEN__.route('shuitou','guningtou')"))
+print('--- wanted'); K("__KINMEN__.goto(-7.2,-1.62,2.4)"); K('__KINMEN__.sim(2)'); K('__KINMEN__.setWanted(3)'); K('__KINMEN__.sim(14)'); s=S(); print(' stars',s['stars'],'police',s['police'],'mission',s['mission']); pg.wait_for_timeout(500); pg.screenshot(path=out+'/f_wanted.png')
+K('__KINMEN__.sim(25)'); pg.wait_for_timeout(2500); K('__KINMEN__.sim(1)'); s=S(); print(' after: stars',s['stars'],'police',s['police'],'km',s['km'],'money',s['money'],'hp',s['hp'])
+print('--- map'); K('__KINMEN__.map()'); pg.wait_for_timeout(600); pg.screenshot(path=out+'/f_map.png'); K('__KINMEN__.map()')

@@ -1,0 +1,12 @@
+import { NodeIO } from '@gltf-transform/core';
+import { ALL_EXTENSIONS } from '@gltf-transform/extensions';
+import { prune, dedup, weld, meshopt } from '@gltf-transform/functions';
+import { MeshoptEncoder } from 'meshoptimizer';
+await MeshoptEncoder.ready;
+const KEEP = new Set(['Idle', 'Idle_Neutral', 'Walk', 'Run', 'Death', 'Punch_Right', 'Punch_Left', 'Kick_Right', 'Gun_Shoot', 'Idle_Gun', 'Idle_Gun_Pointing', 'Run_Shoot', 'Roll', 'HitRecieve', 'Wave', 'Interact']);
+const io = new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({ 'meshopt.encoder': MeshoptEncoder });
+const [, , inp, out, mode] = process.argv;
+const doc = await io.read(inp);
+for (const a of doc.getRoot().listAnimations()) if (mode === 'mesh' || !KEEP.has(a.getName())) a.dispose();
+await doc.transform(dedup(), prune(), meshopt({ encoder: MeshoptEncoder, level: 'medium' }));
+await io.write(out, doc);

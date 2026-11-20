@@ -1,0 +1,8 @@
+S=lambda: K('__KINMEN__.state()')
+D=lambda js: K('__KINMEN__.'+js)
+def shot(n): pg.wait_for_timeout(900); pg.screenshot(path=out+f'/v7_{n}.png')
+D('setTime(15)'); D('dgo()'); pg.wait_for_timeout(2200); D('sim(0.3)')
+D('cam(-1.5708,0.15)'); D("key('KeyW',true)"); D('sim(5)'); D("key('KeyW',false)"); s=S(); print('walk W', s['x'], s['z'], s['y'], s['zone'])
+D('cam(3.1416,0.15)'); D("key('KeyW',true)"); D("key('ShiftLeft',true)"); D('sim(9)'); D("key('KeyW',false)"); D("key('ShiftLeft',false)"); s=S(); print('run N', s['x'], s['z'], s['y'], s['zone']); shot('north')
+D('cam(0,0.15)'); D("key('KeyW',true)"); D("key('ShiftLeft',true)"); D('sim(18)'); D("key('KeyW',false)"); D("key('ShiftLeft',false)"); s=S(); print('run S', s['x'], s['z'], s['y'], s['zone']); shot('south')
+print('secrets', D('secrets()'))

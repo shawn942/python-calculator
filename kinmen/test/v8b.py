@@ -1,0 +1,5 @@
+D=lambda js: K('__KINMEN__.'+js)
+def shot(n): pg.wait_for_timeout(900); pg.screenshot(path=out+f'/v8_{n}.png')
+D('dgo()'); pg.wait_for_timeout(2300); D('setTime(20.4)'); D('sim(1)'); print('plain', D('lights()')); shot('n_plain')
+D("side('dadan2')"); D('sideTp()'); D('sim(0.5)'); D('sideTp()'); D('sim(0.5)'); D('sideTp()'); D('sim(0.5)'); print('st', D('sideSt()'))
+D('sideTp()'); D('sim(0.3)'); print('fight0', D('lights()')); shot('n_f0'); D('sim(1.5)'); print('fight1', D('lights()')); shot('n_f1')

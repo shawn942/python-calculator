@@ -1,0 +1,10 @@
+D=lambda js: K('__KINMEN__.'+js)
+S=lambda: K('__KINMEN__.state()')
+pg.wait_for_function('__KINMEN__.rigInfo().bases.length>5',timeout=60000)
+for n in ['jincheng','shamei']:
+  D(f'teleport("{n}")'); D('setTime(10)'); D('sim(8)'); pg.wait_for_timeout(3000); print('perf',n,S()['fps'],S()['peds'],D('rigInfo()'))
+D('teleport("jincheng")'); D('sim(2)')
+pg.keyboard.down('KeyW'); pg.wait_for_timeout(1200); pg.screenshot(path=out+'/rp_walk.png'); pg.keyboard.down('ShiftLeft'); pg.wait_for_timeout(1200); pg.screenshot(path=out+'/rp_run.png'); pg.keyboard.up('ShiftLeft'); pg.keyboard.up('KeyW')
+pg.wait_for_timeout(600); pg.screenshot(path=out+'/rp_idle.png')
+K('__KINMEN__.dbg && 0'); pg.keyboard.press('Digit2'); pg.wait_for_timeout(300); pg.keyboard.press('Digit1'); pg.wait_for_timeout(600); pg.screenshot(path=out+'/rp_gun.png')
+print(S())

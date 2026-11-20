@@ -1,0 +1,5 @@
+D=lambda js: K('__KINMEN__.'+js)
+print(D('busN()')); m0=D('state()')['money']; s0=D('state()')
+print(D("actGo('搭公車')")); D('sim(0.2)'); pg.keyboard.press('Digit2'); D('sim(0.2)'); pg.wait_for_timeout(1800); D('sim(0.3)')
+s1=D('state()'); print('money', m0, '->', s1['money'], 'moved', round(((s1['x']-s0['x'])**2+(s1['z']-s0['z'])**2)**0.5))
+pg.screenshot(path=out+'/bus.png')

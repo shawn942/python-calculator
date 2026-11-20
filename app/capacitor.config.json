@@ -1,0 +1,6 @@
+{
+  "appId": "tw.kinmen.wudao",
+  "appName": "浯島風雲",
+  "webDir": "www",
+  "ios": { "contentInset": "never", "scrollEnabled": false, "backgroundColor": "#0b0f14" }
+}

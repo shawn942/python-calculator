@@ -1,0 +1,13 @@
+S=lambda: K('__KINMEN__.state()')
+print('check',json.dumps(K('__KINMEN__.check()'),ensure_ascii=False)); print('boats',K('__KINMEN__.boats()'))
+def shot(name,la,lo,cla,clo,h,th,tod=15):
+    K(f"(()=>{{const a=__KINMEN__.ll({la},{lo}),c=__KINMEN__.ll({cla},{clo});__KINMEN__.goto(a[0],a[1],0);__KINMEN__.setTime({tod});__KINMEN__.sim(4);__KINMEN__.free(c[0],c[1],{h},a[0],a[1],{th});}})()"); pg.wait_for_timeout(1200); pg.screenshot(path=out+f'/v_{name}.png')
+shot('jincheng',24.4340,118.3200,24.4318,118.3222,45,4)
+shot('airport',24.4318,118.3596,24.4350,118.3560,40,3)
+shot('shuitou',24.4155,118.2875,24.4168,118.2905,28,2)
+shot('beach',24.4150,118.3560,24.4170,118.3585,16,1,11)
+shot('shanwai',24.4416,118.4150,24.4398,118.4170,40,4)
+shot('overview',24.4500,118.3500,24.4000,118.3500,900,0,12)
+shot('lieyu',24.4320,118.2442,24.4300,118.2465,35,3)
+shot('shamei',24.4892,118.4128,24.4875,118.4150,35,3)
+K('__KINMEN__.free(null)')

@@ -1,0 +1,7 @@
+S=lambda: K('__KINMEN__.state()')
+print('check',json.dumps(K('__KINMEN__.check()'),ensure_ascii=False))
+print('counts',json.dumps(K('__KINMEN__.counts()'),ensure_ascii=False))
+print('rooms',json.dumps(K('__KINMEN__.rooms()'),ensure_ascii=False))
+print('boats',K('__KINMEN__.boats()'))
+K('__KINMEN__.sim(2)'); print(json.dumps(S(),ensure_ascii=False))
+pg.wait_for_timeout(800); pg.screenshot(path=out+'/v2_start.png'); K('__KINMEN__.map()'); pg.wait_for_timeout(700); pg.screenshot(path=out+'/v2_map.png'); K('__KINMEN__.map()')

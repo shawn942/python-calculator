@@ -1,0 +1,7 @@
+D=lambda js: K('__KINMEN__.'+js)
+P={p[0]:p for p in K('__KINMEN__.placesAll()')}; print('has', '榮湖水獺' in P)
+D('setTime(12)'); print(D("actGo('等水獺')"))
+D('setTime(17.5)'); D('sim(0.3)'); m0=D('state()')['money']; print(D("actGo('拍水獺')")); D('sim(0.5)'); print('money', m0, '->', D('state()')['money'])
+print(D("actGo('拍水獺')")); D('sim(0.5)'); print('money2', D('state()')['money'])
+_,x,z,r=P['榮湖水獺']; D(f"free({x/150},{-z/150},5,{(x)/150},{-(z)/150},0)")
+st=D('state()'); D('sim(2)'); pg.wait_for_timeout(1500); pg.screenshot(path=out+'/otter.png')

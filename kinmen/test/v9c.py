@@ -1,0 +1,6 @@
+D=lambda js: K('__KINMEN__.'+js)
+def shot(n): pg.wait_for_timeout(900); pg.screenshot(path=out+f'/v9_{n}.png')
+D('setTime(15.5)'); D('myhome()'); pg.wait_for_timeout(2300); D('sim(0.4)')
+v=D('myview()'); print(v)
+D(f"free({v[0]/150},{-v[1]/150},6,{v[2]/150},{-v[3]/150},7)"); D('sim(0.2)'); shot('facade'); D('setTime(20.5)'); D('sim(1)'); shot('facade_night'); D('free(null)'); D('setTime(15.5)')
+D('myin()'); pg.wait_for_timeout(2500); D('sim(0.3)'); D('mytp(3,-2.0,-3.9,3.1416)'); D('sim(0.2)'); print('act', D('act()')); D('doAct()'); pg.wait_for_timeout(2500); D('sim(0.5)'); print('roof', D('onRoof()')); shot('roof3')

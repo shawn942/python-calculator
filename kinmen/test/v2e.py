@@ -1,0 +1,5 @@
+S=lambda: K('__KINMEN__.state()')
+K('__KINMEN__.sim(3)'); K('__KINMEN__.map()'); pg.wait_for_timeout(700); pg.screenshot(path=out+'/y_map.png'); K('__KINMEN__.map()')
+print(K('__KINMEN__.enterNearest()')); K("__KINMEN__.key('KeyW',true)"); K('__KINMEN__.sim(8)'); print(S()['speed'], S()['zone']); K("__KINMEN__.key('KeyW',false)")
+print(K('__KINMEN__.boat(0)')); K("__KINMEN__.key('KeyW',true)"); K('__KINMEN__.sim(8)'); print('boat',S()['speed'])
+K("__KINMEN__.key('KeyW',false)"); K('__KINMEN__.interact()'); K('__KINMEN__.sim(30)'); print(json.dumps(S(),ensure_ascii=False))

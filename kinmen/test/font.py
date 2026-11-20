@@ -1,0 +1,1 @@
+print(K('''(()=>{const c=document.createElement('canvas');const g=c.getContext('2d');const r={};for(const f of ['800 96px "Noto Sans TC"','800 96px sans-serif','800 96px "Noto Sans CJK TC"']){g.font=f;r[f]=g.measureText('上林埔').width;}r.check=document.fonts.check('800 40px "Noto Sans TC"','上林');return r})()'''))

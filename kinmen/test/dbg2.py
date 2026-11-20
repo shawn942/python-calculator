@@ -1,0 +1,5 @@
+D=lambda js: K('__KINMEN__.'+js)
+K("__KINMEN__.teleport('jincheng')"); D('sim(2)'); print('ev', D("ev('crash')"), flush=True); D('sim(1)'); print('st', D('evSt()'), flush=True)
+D('evWin()'); print('tp ok', flush=True); D('sim(0.5)'); print('sim ok', K('__KINMEN__.state()')['x'], flush=True)
+D("key('KeyE',true)"); print('E down', flush=True); D('sim(0.1)'); print('sim2', flush=True); D("key('KeyE',false)"); print('E up', D('evSt()'), flush=True)
+pg.wait_for_timeout(4600); print('waited', flush=True); D('sim(0.3)'); print('end', D('evSt()'), flush=True)

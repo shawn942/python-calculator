@@ -1,0 +1,8 @@
+D=lambda js: K('__KINMEN__.'+js)
+D('setTime(10)'); D('teleport("jincheng")'); D('sim(8)')
+print(D('busBoardT()')); print(D('busRide()'))
+D('sim(15)'); print(D('busRide()'), D('busInfo()')['live'][:1])
+pg.wait_for_timeout(2500); pg.screenshot(path=out+'/busride.png')
+D('sim(25)'); print(D('busRide()'))
+print(D('interact()'), D('busRide()'), D('state()')['inVehicle'])
+D('sim(2)'); print(D('busRide()'))
