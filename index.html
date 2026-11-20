@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8"><link rel="icon" href="data:,">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>浯島風雲 Kinmen Open World</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500;700;900&display=swap" rel="stylesheet">
 <style>
@@ -77,6 +77,8 @@ body.photo > *:not(canvas):not(#toast):not(#fade){visibility:hidden!important}bo
   @media (orientation:portrait) { #stick { left:24px; bottom:200px; } #btnM, #btnP, #btnQ { top:auto; bottom:170px; } #btnM { right:22px; } #btnP { right:72px; } #btnQ { right:122px; } #btnJ { bottom:98px; } }
   @media (max-width:720px) { #start .card { grid-template-columns:1fr; } #keys { display:none; } #minimap { width:140px; height:140px; left:12px; bottom:22px; } #bars { left:12px; width:140px; bottom:8px; } #speed { left:164px; } #zone b { font-size:24px; } #subtitle { font-size:15px; bottom:170px; } }
 #bigmap .legend span{margin-right:14px;font-weight:700}
+#hud, #touch { left:env(safe-area-inset-left,0px); right:env(safe-area-inset-right,0px); top:env(safe-area-inset-top,0px); bottom:env(safe-area-inset-bottom,0px); }
+html, body { background:#000; }
 </style>
 <link rel="manifest" href="manifest.json">
 <meta name="apple-mobile-web-app-capable" content="yes">

@@ -1,5 +1,5 @@
 // 離線快取：第一次開啟後，之後沒有網路也能玩
-const C = 'wudao-1795158826';
+const C = 'wudao-1795161703';
 const FILES = ['./', './index.html', './game.js', './dem.png', './lu.png', './manifest.json', './icon192.png', './icon512.png', './chars/hero.json','./chars/m_Beach.json','./chars/m_Farmer.json','./chars/m_Suit.json','./chars/m_Swat.json','./chars/m_Worker.json','./chars/w_Casual.json','./chars/w_Formal.json','./chars/w_Punk.json','./chars/w_Suit.json','./chars/w_Worker.json'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(C).then(c => c.addAll(FILES)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== C).map(k => caches.delete(k)))).then(() => self.clients.claim())); });
