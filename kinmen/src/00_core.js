@@ -123,10 +123,12 @@ function textTex(text, { size = 72, color = '#fff', bg = null, vertical = false,
   });
   return { tex, aspect: w / h };
 }
+const SIGN_CACHE = new Map();
 function signMesh(text, height, opts = {}) {
-  const { tex, aspect } = textTex(text, opts);
-  const m = new THREE.Mesh(new THREE.PlaneGeometry(height * aspect, height), new THREE.MeshStandardMaterial({ map: tex, transparent: !opts.bg, roughness: 0.7, side: THREE.FrontSide }));
-  return m;
+  // 相同文字與樣式的招牌共用同一張貼圖與材質；貼圖上傳到顯示卡後就釋放畫布記憶體（手機記憶體有限）
+  const key = text + '|' + JSON.stringify(opts); let S = SIGN_CACHE.get(key);
+  if (!S) { const { tex, aspect } = textTex(text, opts); tex.onUpdate = function () { const c = this.image; if (c && c.getContext && c.width > 1) { this.userData.w = c.width; this.userData.h = c.height; c.width = c.height = 1; } }; S = { aspect, mat: new THREE.MeshStandardMaterial({ map: tex, transparent: !opts.bg, roughness: 0.7, side: THREE.FrontSide }) }; SIGN_CACHE.set(key, S); }
+  return new THREE.Mesh(new THREE.PlaneGeometry(height * S.aspect, height), S.mat);
 }
 
 /* ---------- sky ---------- */

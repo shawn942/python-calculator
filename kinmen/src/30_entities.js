@@ -150,10 +150,10 @@ function makeVehicle(type, x, z, yaw, color) {
 function removeVehicle(v) { scene.remove(v.group); const i = vehicles.indexOf(v); if (i >= 0) vehicles.splice(i, 1); }
 function vehiclePost(v, dt) {
   if (v.def.boat) { v.pos.y = 0.12 + Math.sin(game.time * 1.7 + v.pos.x * 0.1) * 0.08; v.pitch += (-clamp(v.speed, 0, 26) * 0.006 - v.pitch) * Math.min(1, dt * 4); v.roll += (-v.steer * 0.5 * clamp(Math.abs(v.speed) / 12, 0, 1) - v.roll) * Math.min(1, dt * 4); v.group.position.copy(v.pos); v.group.rotation.set(v.pitch, v.yaw, v.roll, 'YXZ'); return; }
-  const f = fwd(v.yaw), hl = v.def.len * 0.36, hw = Math.max(0.3, v.def.wid * 0.4), rx = -f.z, rz = f.x;
+  bridgeRail(v); const f = fwd(v.yaw), hl = v.def.len * 0.36, hw = Math.max(0.3, v.def.wid * 0.4), rx = -f.z, rz = f.x;
   const yF = heightAt(v.pos.x + f.x * hl, v.pos.z + f.z * hl), yB = heightAt(v.pos.x - f.x * hl, v.pos.z - f.z * hl), yL = heightAt(v.pos.x - rx * hw, v.pos.z - rz * hw), yR = heightAt(v.pos.x + rx * hw, v.pos.z + rz * hw);
   const k = Math.min(1, dt * 14); v.pos.y += ((yF + yB) / 2 - v.pos.y) * Math.min(1, dt * 20);
-  v.pitch += (Math.atan2(yB - yF, hl * 2) - v.pitch) * k; let rollT = Math.atan2(yL - yR, hw * 2); if (v.def.two) rollT = -v.steer * 1.1 * Math.min(1, Math.abs(v.speed) / 9);
+  v.pitch += (clamp(Math.atan2(yB - yF, hl * 2), -0.6, 0.6) - v.pitch) * k; let rollT = clamp(Math.atan2(yL - yR, hw * 2), -0.5, 0.5); // 車身傾斜設上限：在橋邊、邊坡不會整台翻成直立 if (v.def.two) rollT = -v.steer * 1.1 * Math.min(1, Math.abs(v.speed) / 9);
   v.roll += (rollT - v.roll) * k; v.group.position.copy(v.pos); v.group.rotation.set(v.pitch, v.yaw, v.roll, 'YXZ');
   for (const w of v.wheels) w.me.rotation.x += v.speed * dt / w.r; for (const p of v.front) p.rotation.y = v.steer;
 }
@@ -296,6 +296,10 @@ function updatePlayerFoot(dt, ax) {
   player.model.group.position.copy(player.pos); player.model.group.rotation.set(0, player.yaw, 0); player.spd = sp;
 }
 function punch() { if (player.veh || player.punch > 0 || player.swim) return; for (const n of roomNpcs) if (n.room === player.inside && !n.dead && Math.hypot(n.pos.x - player.pos.x, n.pos.z - player.pos.z) < 1.9) { scareRoom(n.room); crimeMin(1); } player.punch = 0.3; const f = fwd(player.yaw); let hit = false, bad = false; for (const p of peds) { const dx = p.pos.x - player.pos.x, dz = p.pos.z - player.pos.z; if (p.state !== 'down' && Math.hypot(dx, dz) < 1.9 && dx * f.x + dz * f.z > 0.2) { knockPed(p, f.x * 5, f.z * 5); hit = true; if (p.bad) bad = true; } } if (hit && !bad) crime(1); else sfx('swish', 0.25); }
+/* 橋上護欄：車在橋面上時不能從側邊掉出去（原本會半個車身懸空、翻成直立後卡住） */
+function bridgeRail(v) { const e = bridgeEdge; if (!e || v.def.boat) return; const A = e.a, B = e.b, ex = B.x - A.x, ez = B.z - A.z, L2 = ex * ex + ez * ez, t = ((v.pos.x - A.x) * ex + (v.pos.z - A.z) * ez) / L2; if (t < 0.02 || t > 0.98) return;
+  const L = Math.sqrt(L2), nx = ez / L, nz = -ex / L, lat = (v.pos.x - A.x) * nx + (v.pos.z - A.z) * nz, lim = e.hw - Math.max(0.5, v.def.wid * 0.5); if (Math.abs(lat) > e.hw + 3 || Math.abs(lat) <= lim) return; const dy = edgePoint(e, t * e.len).y; if (v.pos.y < dy - 2.5) return; // 在橋下（船、海面）不管
+  const s = Math.sign(lat), over = Math.abs(lat) - lim; v.pos.x -= nx * s * over; v.pos.z -= nz * s * over; const vn = (v.vx * nx + v.vz * nz) * s; if (vn > 0) { v.vx -= nx * s * vn * 1.2; v.vz -= nz * s * vn * 1.2; } }
 /* 脫困：拉回最近的路面，車頭朝路的方向 */
 function rescueTo(x, z) { const n = nearestRoad(x, z, 400); if (!n) return null; const p = n.p, e = n.e, i = Math.min(n.i, e.pts.length - 2), q = e.pts[i + 1] || p; let tx = q.x - e.pts[i].x, tz = q.z - e.pts[i].z; const l = Math.hypot(tx, tz) || 1; return { x: p.x, z: p.z, y: Math.max(p.y, groundAt(p.x, p.z)), yaw: Math.atan2(tx / l, tz / l) }; }
 function rescueVehicle(v, why) { const r = rescueTo(v.pos.x, v.pos.z); if (!r) return false; v.pos.set(r.x, r.y + 0.6, r.z); v.yaw = r.yaw; v.vx = v.vz = 0; v.speed = 0; v.pitch = v.roll = 0; v.stuckT = 0; toast(why || '車卡住了，已拉回路上'); return true; }

@@ -25,3 +25,13 @@ function cullUpdate() {
   const vd = CULL.veh * k; for (const v of vehicles) { const vis = v === player.veh || Math.hypot(v.pos.x - cp.x, v.pos.z - cp.z) < vd; if (!vis) hid++; if (vis !== (v._cv !== false)) { v._cv = vis; v.group.traverse(x => { if (vis) x.layers.enable(0); else x.layers.disable(0); }); } }
   CULL.hidden = hid;
 }
+
+/* 自動解析度：手機幀數太低時自動降低繪圖解析度，順了再慢慢調回來（設定的畫質是上限）。?nores 可關閉 */
+const ARES = { on: !/nores/.test(location.search) && !navigator.webdriver, n: 0, t: 0, k: 1, good: 0, bad: 0 };
+function autoRes(now) {
+  if (!ARES.on || !game.started || game.paused) { ARES.t = 0; ARES.n = 0; return; } ARES.n++; if (!ARES.t) { ARES.t = now; ARES.n = 0; return; } const dt = now - ARES.t; if (dt < 1000) return;
+  const fps = ARES.n * 1000 / dt; ARES.n = 0; ARES.t = now; if (dt > 2500) return; // 分頁切到背景再回來的那一格不算
+  if (fps < 27) { ARES.bad++; ARES.good = 0; } else if (fps > 50) { ARES.good++; ARES.bad = 0; } else { ARES.bad = ARES.good = 0; }
+  let k = ARES.k; if (ARES.bad >= 3 && k > 0.55) { k = Math.max(0.55, k - 0.12); ARES.bad = 0; } else if (ARES.good >= 8 && k < 1) { k = Math.min(1, k + 0.08); ARES.good = 0; } if (k === ARES.k) return; ARES.k = k;
+  const pr = Math.min(window.devicePixelRatio || 1, Q.pr) * k; renderer.setPixelRatio(pr); if (typeof composer !== 'undefined' && composer) { composer.setPixelRatio(pr); composer.setSize(window.innerWidth, window.innerHeight); }
+}
