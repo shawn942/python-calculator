@@ -153,8 +153,12 @@ function vehiclePost(v, dt) {
   bridgeRail(v); const f = fwd(v.yaw), hl = v.def.len * 0.36, hw = Math.max(0.3, v.def.wid * 0.4), rx = -f.z, rz = f.x;
   const yF = heightAt(v.pos.x + f.x * hl, v.pos.z + f.z * hl), yB = heightAt(v.pos.x - f.x * hl, v.pos.z - f.z * hl), yL = heightAt(v.pos.x - rx * hw, v.pos.z - rz * hw), yR = heightAt(v.pos.x + rx * hw, v.pos.z + rz * hw);
   const k = Math.min(1, dt * 14); v.pos.y += ((yF + yB) / 2 - v.pos.y) * Math.min(1, dt * 20);
-  v.pitch += (clamp(Math.atan2(yB - yF, hl * 2), -0.6, 0.6) - v.pitch) * k; let rollT = clamp(Math.atan2(yL - yR, hw * 2), -0.5, 0.5); // 車身傾斜設上限：在橋邊、邊坡不會整台翻成直立 if (v.def.two) rollT = -v.steer * 1.1 * Math.min(1, Math.abs(v.speed) / 9);
-  v.roll += (rollT - v.roll) * k; v.group.position.copy(v.pos); v.group.rotation.set(v.pitch, v.yaw, v.roll, 'YXZ');
+  v.pitch += (clamp(Math.atan2(yB - yF, hl * 2), -0.6, 0.6) - v.pitch) * k; let rollT = clamp(Math.atan2(yL - yR, hw * 2), -0.5, 0.5); // 車身傾斜設上限：在橋邊、邊坡不會整台翻成直立
+  if (v.def.two) { // 機車／腳踏車：依離心力壓車（atan(v·ω/g)），加速抬頭、煞車點頭
+    rollT = clamp(-Math.atan(v.speed * (v.yawRate || 0) / 9.8), -0.72, 0.72) + rollT * 0.3;
+    v.pitchA = (v.pitchA || 0) + (clamp(-(v.accF || 0) * 0.006, -0.07, 0.07) - (v.pitchA || 0)) * Math.min(1, dt * 6);
+  }
+  v.roll += (rollT - v.roll) * k; v.group.position.copy(v.pos); v.group.rotation.set(v.pitch + (v.pitchA || 0), v.yaw, v.roll, 'YXZ');
   for (const w of v.wheels) w.me.rotation.x += v.speed * dt / w.r; for (const p of v.front) p.rotation.y = v.steer;
 }
 function driveBoat(v, ctl, dt) {
@@ -176,10 +180,20 @@ function driveVehicle(v, ctl, dt) {
   if (ctl.hb) vf -= Math.sign(vf) * Math.min(Math.abs(vf), 13 * dt);
   v.vx = f.x * vf + r.x * vl; v.vz = f.z * vf + r.z * vl;
   const sp = Math.abs(vf), maxSteer = lerp(0.6, 0.085, clamp(sp / T.max, 0, 1));
+  if (T.two) {
+    // 機車手感：低速可以小半徑迴轉（約 2.4 m），高速轉向受側向抓地力限制；轉向率有慣性（壓車需要一點時間）
+    const aLat = (v.onRoad ? 14 : 8.5) * (ctl.hb ? 1.25 : 1), rateMax = sp < 0.25 ? 0 : Math.min(sp / 2.4, aLat / Math.max(sp, 0.1), 2.3);
+    const target = ctl.steer * rateMax * Math.sign(vf), yr = v.yawRate || 0;
+    v.yawRate = yr + (target - yr) * Math.min(1, dt * (sp > 16 ? 5 : 8));
+    v.yaw += v.yawRate * dt;
+    v.steer += (ctl.steer * lerp(0.5, 0.06, clamp(sp / T.max, 0, 1)) - v.steer) * Math.min(1, dt * 9); // 前輪把手（視覺）
+  } else {
   v.steer += (ctl.steer * maxSteer - v.steer) * Math.min(1, dt * 7);
   v.yaw += (vf / (T.len * 0.62)) * Math.tan(v.steer) * dt * (ctl.hb ? 1.4 : 1);
+  }
   f = fwd(v.yaw); r = { x: -f.z, z: f.x }; vf = v.vx * f.x + v.vz * f.z; vl = v.vx * r.x + v.vz * r.z;
-  vl *= Math.exp(-(ctl.hb ? 1.5 : (v.onRoad ? 7.5 : 4.5)) * dt);
+  vl *= Math.exp(-(T.two ? (ctl.hb ? 3 : (v.onRoad ? 14 : 8)) : (ctl.hb ? 1.5 : (v.onRoad ? 7.5 : 4.5))) * dt);
+  if (dt > 0) v.accF = (v.accF || 0) + ((vf - (v.speed || 0)) / dt - (v.accF || 0)) * Math.min(1, dt * 5);
   v.vx = f.x * vf + r.x * vl; v.vz = f.z * vf + r.z * vl; v.speed = vf; v.slip = Math.abs(vl);
   const px = v.pos.x, pz = v.pos.z; v.pos.x += v.vx * dt; v.pos.z += v.vz * dt; deckGuard(px, pz, v.pos, v);
 }
@@ -309,7 +323,7 @@ function updatePlayerVehicle(dt, ax) {
   driveVehicle(v, { thr: ax.y, steer: -ax.x, hb: !!(keys.Space || touch.brake) }, dt); const imp = vehicleCollide(v, dt); vehiclePost(v, dt);
   if (!v.def.boat && !v.def.tank) { const pushing = Math.abs(ax.y) > 0.3 && Math.abs(v.speed || 0) < 0.8, flipped = Math.abs(v.roll || 0) > 1.1 || Math.abs(v.pitch || 0) > 1.1; v.stuckT = (pushing || flipped) ? (v.stuckT || 0) + dt : 0; if (v.stuckT > 3) rescueVehicle(v); }
   player.pos.copy(v.pos); player.yaw = v.yaw;
-  if (v.def.open) { const g = player.model.group, f = fwd(v.yaw); if (v.type === 'boat') { g.position.set(v.pos.x - f.x * 0.6, v.pos.y + 0.3, v.pos.z - f.z * 0.6); g.rotation.set(0, v.yaw, 0); } else if (v.def.two) { g.position.set(v.pos.x - f.x * 0.42, v.pos.y - 0.06, v.pos.z - f.z * 0.42); g.rotation.set(v.pitch, v.yaw, v.roll, 'YXZ'); } else { g.position.set(v.pos.x + f.z * 0.4 - f.x * 0.1, v.pos.y + 0.16, v.pos.z - f.x * 0.4 - f.z * 0.1); g.rotation.set(0, v.yaw, 0); } poseSit(player.model); }
+  if (v.def.open) { const g = player.model.group, f = fwd(v.yaw); if (v.type === 'boat') { g.position.set(v.pos.x - f.x * 0.6, v.pos.y + 0.3, v.pos.z - f.z * 0.6); g.rotation.set(0, v.yaw, 0); } else if (v.def.two) { g.position.set(v.pos.x - f.x * 0.42, v.pos.y - 0.06, v.pos.z - f.z * 0.42); g.rotation.set(v.pitch + (v.pitchA || 0), v.yaw, v.roll, 'YXZ'); } else { g.position.set(v.pos.x + f.z * 0.4 - f.x * 0.1, v.pos.y + 0.16, v.pos.z - f.x * 0.4 - f.z * 0.1); g.rotation.set(0, v.yaw, 0); } poseSit(player.model); }
   if (!v.def.boat && groundAt(v.pos.x, v.pos.z) < -1.3 && bridgeY(v.pos.x, v.pos.z) === null && deckY(v.pos.x, v.pos.z) === null) { const veh = v; exitForce(); removeVehicle(veh); respawn('落海了！車子泡湯', true); }
 }
 function exitForce() { if (player.bus) { player.bus = null; player.model.group.visible = true; } const v = player.veh; if (!v) return; v.driver = 'none'; player.veh = null; player.model.group.visible = true; poseWalk(player.model, 0, 0); }

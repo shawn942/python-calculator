@@ -285,7 +285,7 @@ function updateCamera(dt) {
   if (cam.free) { camera.position.copy(cam.free.p); camera.lookAt(cam.free.t); return; }
   const v = player.veh || player.bus, pl = player.plane, R = player.inside; let tp, dist, hgt, side = 0, pitch = cam.pitch; const crouchY = player.crouch && !v && !pl ? -0.45 : 0;
   if (pl) { if (game.time - cam.lastIn > 1.5) cam.off *= Math.exp(-2.5 * dt); cam.yaw += angDiff(cam.yaw, pl.yaw + cam.off) * (1 - Math.exp(-dt * 4)); dist = 17; hgt = 2.4; tp = pl.pos; pitch = clamp(0.2 - pl.pitch * 0.6, -0.3, 0.8); }
-  else if (v) { if (game.time - cam.lastIn > 1.2 && !(inv.cur && (input.fire || input.aim))) cam.off *= Math.exp(-2.5 * dt); cam.yaw += angDiff(cam.yaw, v.yaw + cam.off) * (1 - Math.exp(-dt * 5)); dist = (player.bus ? 13 : v.def.two ? 6 : v.type === 'van' ? 10 : v.type === 'boat' ? 10 : 8.4) + Math.abs(v.speed) * 0.08; hgt = v.type === 'van' ? 2.5 : 1.6; tp = v.pos; }
+  else if (v) { if (game.time - cam.lastIn > 1.2 && !(inv.cur && (input.fire || input.aim))) cam.off *= Math.exp(-2.5 * dt); cam.yaw += angDiff(cam.yaw, v.yaw + cam.off) * (1 - Math.exp(-dt * (v.def.two ? 7 : 5))); dist = (player.bus ? 13 : v.def.two ? 5.2 : v.type === 'van' ? 10 : v.type === 'boat' ? 10 : 8.4) + Math.abs(v.speed) * (v.def.two ? 0.06 : 0.08); hgt = v.type === 'van' ? 2.5 : v.def.two ? 1.45 : 1.6; tp = v.pos; }
   else { const armed = inv.cur > 0; if (!armed && !locked && player.spd > 0 && game.time - cam.lastIn > 1.6) cam.yaw += angDiff(cam.yaw, player.yaw) * Math.min(1, dt * 1.3); dist = R ? 3.3 : input.aim && armed ? 3.0 : armed ? 4.8 : 6.4; hgt = 1.55; tp = player.pos; if (armed) side = 0.65; if (player.tunnel) { const big = player.tunnel.H > 8; dist = Math.min(dist, big ? 5.5 : 3.2); side = big ? side : 0.15; hgt = Math.min(1.55, player.tunnel.H - 0.9); } }
   const f = fwd(cam.yaw), cp = Math.cos(pitch), sp = Math.sin(pitch), sx = -f.z * side, sz = f.x * side; let wx = tp.x - f.x * dist * cp + sx, wz = tp.z - f.z * dist * cp + sz, wy = tp.y + hgt + dist * sp;
   if (player.tunnel) { wy = Math.min(wy, player.tunnel.Y + player.tunnel.H - 0.35); pitch = Math.min(pitch, 0.5); }
@@ -295,6 +295,7 @@ function updateCamera(dt) {
   if (!v && !pl) player.model.group.visible = !player.bus && !(player.tunnel && Math.hypot(cam.pos.x - tp.x, cam.pos.z - tp.z) < 0.9);
   const k = 1 - Math.exp(-dt * (pl ? 6 : 12)); cam.pos.x += (wx - cam.pos.x) * k; cam.pos.y += (wy - cam.pos.y) * k; cam.pos.z += (wz - cam.pos.z) * k; camera.position.copy(cam.pos); if (!R && !player.tunnel && !pl) treeOcclude(cam.pos.x, cam.pos.y, cam.pos.z, tp.x, tp.y + hgt, tp.z); else if (treeHidden.size) treeOcclude(0, 0, 0, 0, 0, 0);
   const la = !v && !pl && inv.cur ? 14 : 0; camera.position.y += crouchY; camera.lookAt(tp.x + sx + f.x * la, tp.y + hgt + crouchY - (la ? Math.tan(pitch) * la * 0.75 : 0), tp.z + sz + f.z * la);
+  cam.bank = (cam.bank || 0) + ((v && v.def && v.def.two && !player.bus ? (v.roll || 0) * 0.16 : 0) - (cam.bank || 0)) * Math.min(1, dt * 5); if (Math.abs(cam.bank) > 0.001) camera.rotateZ(cam.bank); // 騎機車時鏡頭跟著微微傾斜
   const fov = pl ? 62 + pl.speed * 0.12 : input.aim && inv.cur && !v ? 40 : 58 + (v ? clamp(Math.abs(v.speed) / v.def.max, 0, 1) * 13 : 0); if (Math.abs(camera.fov - fov) > 0.1) { camera.fov += (fov - camera.fov) * Math.min(1, dt * 6); camera.updateProjectionMatrix(); }
 }
 
@@ -330,7 +331,7 @@ function updateHud(dt) {
   if (game.frame % 20 === 0) { const z = zoneAt(player.pos.x, player.pos.z); if (z.name !== lastZone) { lastZone = z.name; const ze = $('zone'); ze.innerHTML = `<b>${z.name}</b><span>${z.name === z.town || !z.town ? '金門縣' : z.town}</span>`; ze.classList.remove('show'); void ze.offsetWidth; ze.classList.add('show'); } }
   if (target) { routeT -= dt; if (routeT <= 0) { routeT = 1; const wp = wpos(); routePts = mission.type === 'fly' ? [[wp.x, wp.z], [target.x, target.z]] : computeRoute(wp.x, wp.z, target.x, target.z); } targetMesh.material.opacity = 0.22 + Math.sin(game.time * 4) * 0.08; { const wq = wpos(); targetMesh.visible = mission.type !== 'fly' && target.beacon === true && Math.hypot(target.x - wq.x, target.z - wq.z) > 16; } }
   if (game.frame % 2 === 0) drawMinimap(); if (game.mapOpen && game.frame % 30 === 0) drawBigMap();
-  if (eng) { const s = pl ? 20 + pl.thr * 30 : v ? Math.abs(v.speed) : 0; eng.g.gain.value = pl ? 0.03 + pl.thr * 0.04 : v && v.def.quiet ? 0 : v ? 0.035 + Math.min(0.03, s * 0.001) : 0; eng.o.frequency.value = 48 + s * 4.2 + (v && axis().y > 0 ? 14 : 0); eng.f.frequency.value = 380 + s * 22; }
+  if (eng) { const s = pl ? 20 + pl.thr * 30 : v ? Math.abs(v.speed) : 0; eng.g.gain.value = pl ? 0.03 + pl.thr * 0.04 : v && v.def.quiet ? 0 : v ? 0.035 + Math.min(0.03, s * 0.001) : 0; eng.o.frequency.value = v && v.def.two ? 80 + s * 6.5 + (axis().y > 0 ? 22 : 0) : 48 + s * 4.2 + (v && axis().y > 0 ? 14 : 0); eng.f.frequency.value = v && v.def.two ? 900 + s * 45 : 380 + s * 22; } // 機車：無段變速的高音引擎聲
   game.saveT -= dt; if (game.saveT <= 0) { game.saveT = 30; if (!wanted.stars) saveGame(); }
 }
 // 手機切到別的 App 或關掉時立刻存一次（不用等 30 秒自動存檔）；並請瀏覽器把存檔標成「不要自動清掉」

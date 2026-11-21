@@ -415,6 +415,8 @@ function lifeDebug() {
     procFollow: () => { const c = proc.mem.find(m => m.role === 'chair'); if (!c) return null; exitForce(); tpTo(c.o.position.x + 3, c.o.position.z + 3); return true; },
     procSt: () => ({ on: proc.on, s: proc.s, L: Math.round(proc.L), n: proc.mem.length, blessed: proc.blessed, chair: proc.mem.length ? [proc.mem.find(m => m.role === 'chair').o.position.x, proc.mem.find(m => m.role === 'chair').o.position.z] : null }),
     otterC: () => otter.c && [otter.c.x, otter.c.z, otter.r],
+    rideTest: (type = 'scooter') => { exitForce(); const n = nearestRoad(player.pos.x, player.pos.z, 400); if (!n) return null; const p = n.e.pts[n.i], q = n.e.pts[Math.min(n.i + 1, n.e.pts.length - 1)]; const v = makeVehicle(type, p.x, p.z, Math.atan2(q.x - p.x, q.z - p.z)); player.pos.set(p.x, heightAt(p.x, p.z), p.z); enterVehicle(v); return { type: v.type, two: !!v.def.two }; },
+    ride: () => { const v = player.veh; return v ? { spd: +v.speed.toFixed(2), yr: +(v.yawRate || 0).toFixed(3), roll: +v.roll.toFixed(3), pitch: +v.pitch.toFixed(3), pA: +(v.pitchA || 0).toFixed(3), yaw: +v.yaw.toFixed(3), x: +v.pos.x.toFixed(1), z: +v.pos.z.toFixed(1), slip: +(v.slip || 0).toFixed(2), bank: +(cam.bank || 0).toFixed(3) } : null; },
     vehNear: () => vehicles.filter(v => v.pos.distanceTo(player.pos) < 15).map(v => v.type),
     stOld: () => { const fn = CHAPTERS[story.ch] && CHAPTERS[story.ch].fn, n = story.npcs[0]; const onFoot = () => { exitForce(); tpTo(n.x + 2, n.z + 2); };
       if (fn === 'ch1') { if (story.step === 0) { exitForce(); tpTo(roadNodes.MF.x, roadNodes.MF.z); } else onFoot(); }
