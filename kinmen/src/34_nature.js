@@ -37,7 +37,9 @@ function natBuild(kind) {
   const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(P, 3)); g.setAttribute('normal', new THREE.Float32BufferAttribute(N, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(U, 2)); g.setAttribute('color', new THREE.Float32BufferAttribute(C, 3)); g.setIndex(I); g.computeBoundingSphere(); return g;
 }
 let mNat = null;
-async function loadNature() { if (!NAT.on) return; mNat = new THREE.MeshStandardMaterial({ map: natTexture(), alphaTest: 0.42, side: THREE.DoubleSide, vertexColors: true, roughness: 0.9 }); for (const k of ['round', 'round2', 'tall', 'wide', 'pine', 'pine2', 'bush']) NAT.g[k] = { geo: natBuild(k.replace('2', '')), h: 1 }; NAT.ready = true; }
+async function loadNature() { if (!NAT.on) return; mNat = new THREE.MeshStandardMaterial({ map: natTexture(), alphaTest: 0.42, side: THREE.DoubleSide, vertexColors: true, roughness: 0.9 });
+  /* 樹冠修正：雙面卡片背面不翻法線（否則背光那面全黑），也不接收陰影（代投影的球體包在樹冠裡，會把自己整團塗黑） */
+  mNat.userData.noRecv = true; mNat.onBeforeCompile = sh => { sh.fragmentShader = sh.fragmentShader.replace(/normal = normal \* faceDirection;|normal \*= faceDirection;/g, '').replace('#include <normal_fragment_maps>', '#include <normal_fragment_maps>\n  normal = normalize(normal + (viewMatrix * vec4(0.0, 0.75, 0.0, 0.0)).xyz);').replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\n  totalEmissiveRadiance += diffuseColor.rgb * 0.14;'); }; /* 法線往天空偏、加一點透光，背光面不再死黑 */ mNat.customProgramCacheKey = () => 'natleaf'; for (const k of ['round', 'round2', 'tall', 'wide', 'pine', 'pine2', 'bush']) NAT.g[k] = { geo: natBuild(k.replace('2', '')), h: 1 }; NAT.ready = true; }
 const NAT_TREES = ['round', 'round2', 'tall', 'wide'], NAT_PINES = ['pine', 'pine2'];
 /* 影子：葉片卡片不投影（alpha test 的陰影很貴），改由一顆看不見的簡單球體代投 */
 const mNatSh = new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false });

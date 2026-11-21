@@ -1,0 +1,3 @@
+D=lambda js: K('__KINMEN__.'+js)
+D('teleport("jincheng")'); D('sim(20)'); D('setTime(20)'); D('sim(10)')
+print(K('''(()=>{const r={};for(const s of __KINMEN__._msrc()){const o=s.o;if(o.visible||s.tl)continue;const g=o.geometry;if(!g.boundingSphere)g.computeBoundingSphere();const m=o.material;const k=g.attributes.position.count+'v r'+g.boundingSphere.radius.toFixed(1)+' c'+g.boundingSphere.center.toArray().map(Math.round)+' col#'+m.color.getHexString()+(m.map?' map':'')+' ud:'+Object.keys(o.userData).join(',')+' rs'+o.receiveShadow+' cs'+o.castShadow;r[k]=(r[k]||0)+1;}return Object.entries(r).slice(0,12)})()'''))

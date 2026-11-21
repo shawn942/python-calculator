@@ -1,0 +1,1 @@
+print(K('''(()=>{const r={};for(const s of __KINMEN__._msrc()){const o=s.o;const k=(o.userData._c!==undefined?'C':'noC')+(s.m.elements[12]===0&&s.m.elements[14]===0?' origin':'')+' '+o.geometry.type;r[k]=(r[k]||0)+1;}return r})()'''))
