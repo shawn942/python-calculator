@@ -355,7 +355,7 @@ async function boot() {
   L('產生金門島地形…'); await loadDEM(); await loadLU(); await tick(); buildTerrainData();
   L('鋪設道路…'); await tick(); await loadPhotos().catch(() => { }); buildRoadData(); buildTerrainMesh(); buildRoadMeshes();
   L('建造聚落與地標…'); await tick(); await loadNature().catch(() => { }); buildWorld(); buildRoundabouts(); buildRoadFurniture(); buildCampGates(); addOsmPlaces(); buildBusRoutes(); buildMap();
-  L('準備車輛與居民…'); await tick(); applyQuality(); applyGrime(); buildFarShore(); initPlayer(); loadRigs().catch(() => { }); await loadCars().catch(() => { }); spawnParked(); initMissions(); loadGame(); survLoad(); initStory(); setupTouch(); drawStars(); addMoney(0); $('delta').className = ''; refreshWeapon();
+  L('準備車輛與居民…'); await tick(); applyQuality(); applyGrime(); mergeTowns(); buildFarShore(); initPlayer(); loadRigs().catch(() => { }); await loadCars().catch(() => { }); spawnParked(); initMissions(); loadGame(); survLoad(); initStory(); setupTouch(); drawStars(); addMoney(0); $('delta').className = ''; refreshWeapon();
   cam.yaw = player.yaw + 0.5; cam.pitch = 0.22; const f = fwd(cam.yaw); cam.pos.set(player.pos.x - f.x * 14, player.pos.y + 6, player.pos.z - f.z * 14);
   $('loading').style.display = 'none'; $('start').classList.add('show'); window.__KINMEN__.ready = true; requestAnimationFrame(frame);
 }
@@ -370,7 +370,7 @@ $('resetBtn').addEventListener('click', () => { try { for (const k of ['kinmen_s
 const SCENES = { nqu: [24.4447, 118.3250, 0.6], jincheng: [24.4336, 118.3204, 2.4], bank: [24.4350, 118.3197, 0], airport: [24.4340, 118.3600, 3.1], shuitou: [24.4150, 118.2890, 4], shanwai: [24.4420, 118.4143, 2.2], shamei: [24.4890, 118.4132, 5.5], lieyu: [24.4320, 118.2442, 4], guningtou: [24.4775, 118.3087, 5.6], shanhou: [24.5032, 118.4397, 0.6] };
 for (const k in SCENES) { const g = G(SCENES[k][0], SCENES[k][1]); SCENES[k] = [g[0], g[1], SCENES[k][2]]; }
 window.__KINMEN__ = {
-  ready: false, scenes: Object.keys(SCENES), start: startGame,
+  ready: false, scenes: Object.keys(SCENES), start: startGame, _scene: scene, _T: THREE, _cam: camera, mergeInfo: () => MRG.stat, mergeCheck, _msrc: () => MRG.src,
   state: () => ({ x: +player.pos.x.toFixed(1), y: +player.pos.y.toFixed(1), z: +player.pos.z.toFixed(1), km: [+(player.pos.x / KM).toFixed(2), +(-player.pos.z / KM).toFixed(2)], inVehicle: player.veh ? player.veh.type : null, speed: player.veh ? +player.veh.speed.toFixed(1) : 0, money: player.money, hp: Math.round(player.hp), stars: wanted.stars, tod: +env.tod.toFixed(2), zone: lastZone, mission: mission.type, taxi: !!mission.taxi, vehicles: vehicles.length, traffic: vehicles.filter(v => v.ai).length, police: vehicles.filter(v => v.driver === 'police').length, peds: peds.length, lions: mission.lions, fps: Math.round(game.fps), draws: renderer.info.render.calls, tris: renderer.info.render.triangles }),
   teleport: (name, yawOverride) => { const s = SCENES[name]; if (!s) return false; exitForce(); const x = s[0] * KM, z = -s[1] * KM; player.pos.set(x, heightAt(x, z), z); player.yaw = yawOverride ?? s[2]; cam.yaw = player.yaw; const f = fwd(cam.yaw); cam.pos.set(x - f.x * 8, player.pos.y + 4, z - f.z * 8); nearT = 0; return true; },
   setTime: h => { env.tod = h; }, setWanted: n => { wanted.cd = 0; wanted.stars = 0; crime(n); }, key: (c, down) => { keys[c] = down; if (down) onKey(c); }, cam: (yaw, pitch) => { cam.yaw = yaw; cam.pitch = pitch; cam.lastIn = game.time + 1e6; },

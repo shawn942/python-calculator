@@ -48,6 +48,6 @@ function natTree(x, z, kind, s) { // 回傳 false 代表用舊的程序化樹
   if (!NAT.ready) return false; const y = groundAt(x, z) - 0.15;
   if (kind === 1) { const k = pick(NAT_PINES), H = rr(9, 13) * s, w = H * rr(0.85, 1.1); regTree(x, z, w * 0.2 + 0.6, y + H, [BT['nat_' + k].add(MX(x, y, z, rr(0, 6.28), w, H, w), natTint(0.3)), BT.nat_sh.add(MX(x, y + H * 0.62, z, 0, w * 0.17, H * 0.34, w * 0.17))]); return true; }
   const k = pick(NAT_TREES), H = rr(7, 10) * s, w = H * rr(0.95, 1.25), ents = [BT['nat_' + k].add(MX(x, y, z, rr(0, 6.28), w, H, w), natTint()), BT.nat_sh.add(MX(x, y + H * 0.66, z, 0, w * 0.4, H * 0.27, w * 0.4))];
-  if (Math.random() < 0.35) { const a = rr(0, 6.28), d = w * rr(0.35, 0.6), bx = x + Math.cos(a) * d, bz = z + Math.sin(a) * d, bs = rr(1.6, 2.6) * s; BT.nat_bush.add(MX(bx, groundAt(bx, bz) - 0.1, bz, rr(0, 6.28), bs, bs * rr(0.8, 1.1), bs), natTint(0.25)); }
+  if (rand() < 0.35) { const a = rr(0, 6.28), d = w * rr(0.35, 0.6), bx = x + Math.cos(a) * d, bz = z + Math.sin(a) * d, bs = rr(1.6, 2.6) * s; BT.nat_bush.add(MX(bx, groundAt(bx, bz) - 0.1, bz, rr(0, 6.28), bs, bs * rr(0.8, 1.1), bs), natTint(0.25)); }
   regTree(x, z, w * 0.4 + 0.6, y + H, ents); return true;
 }

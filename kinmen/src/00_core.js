@@ -88,7 +88,7 @@ class Batch {
       const mesh = new THREE.InstancedMesh(this.geo, this.mat, a.length); const useCol = a.some(i => i[1]);
       for (let i = 0; i < a.length; i++) { mesh.setMatrixAt(i, a[i][0]); a[i][2] = mesh; a[i][3] = i; if (useCol) mesh.setColorAt(i, a[i][1] || WHITE); }
       mesh.instanceMatrix.needsUpdate = true; if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
-      mesh.castShadow = this.cast; mesh.receiveShadow = true; mesh.computeBoundingSphere(); mesh.name = this.key || ''; scene.add(mesh);
+      mesh.castShadow = this.cast; mesh.receiveShadow = true; mesh.computeBoundingSphere(); mesh.name = this.key || ''; mesh.userData.batch = true; scene.add(mesh);
     }
     this.chunks.clear();
   }

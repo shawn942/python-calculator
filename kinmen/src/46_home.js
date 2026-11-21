@@ -11,7 +11,7 @@ const myHome = { T: null, ext: null, roofCols: [], body: null, cat: null, mjT: -
 let safeMoney = 0; try { safeMoney = +localStorage.getItem('kinmen_safe') || 0; } catch (e) { }
 const FLOOR_ORIGIN = n => ({ x: 7700 + (n - 1) * 40, z: 400 });
 const mPanel = new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xfff4dc, emissiveIntensity: 1.4 });
-const mSky = new THREE.MeshStandardMaterial({ color: 0xcfe6f5, emissive: 0xbfdcf0, emissiveIntensity: 0.9 });
+const mSky = new THREE.MeshStandardMaterial({ color: 0xcfe6f5, emissive: 0xbfdcf0, emissiveIntensity: 0.9 }); mSky.userData.noMerge = true;
 const mTV = new THREE.MeshStandardMaterial({ color: 0x223344, emissive: 0x5a8fd6, emissiveIntensity: 0.9 });
 const tileTex = canvasTex(128, 128, g => { g.fillStyle = '#e8e1d2'; g.fillRect(0, 0, 128, 128); g.strokeStyle = '#c9c0ad'; g.lineWidth = 3; for (let i = 0; i <= 128; i += 64) { g.beginPath(); g.moveTo(i, 0); g.lineTo(i, 128); g.stroke(); g.beginPath(); g.moveTo(0, i); g.lineTo(128, i); g.stroke(); } }, true);
 const woodTex = canvasTex(128, 128, g => { g.fillStyle = '#a77b52'; g.fillRect(0, 0, 128, 128); for (let i = 0; i < 128; i += 16) { g.fillStyle = i % 32 ? '#9a7049' : '#b08559'; g.fillRect(0, i, 128, 15); } }, true);

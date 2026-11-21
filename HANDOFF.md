@@ -1,6 +1,8 @@
 # 浯島風雲（網頁版）交接筆記
 
-> 新對話開始時，請 Claude 先讀這份。最後更新：2026-11-21。
+> 新對話開始時，請 Claude 先讀這份。最後更新：2026-11-21（上午，街區合併第 1 輪）。
+
+**分工**：有連電腦的那個對話負責電腦操作（Unreal 版）；沒連電腦的對話負責網頁版的程式、建置、部署，管 GitHub 的 `kinmen-src` 和 `gh-pages`。
 
 ## 這是什麼
 金門開放世界遊戲的**網頁／手機版**（three.js），跟 Unreal 5 版是兩個不同專案。
@@ -16,8 +18,9 @@
 4. 測試需要 Playwright＋Chrome（SwiftShader 軟體繪圖，FPS 數字不準，約 3 秒一格）：
    `python3 test/run.py reg`（回歸）、`python3 test/run_touch.py`（觸控）、`python3 test/run.py full`（12 章劇情，約 20 分鐘）
    - 測試指令碼裡寫死了 `/home/claude/kinmen` 路徑，clone 到別處要改。
-5. 部署：
-   - 把 `dist/` 的 `game.js`、`tex/`、`cars/`、`chars/`、`dem.png`、`lu.png` 和 `pwa/`（index.html、manifest.json、sw.js、icon）一起放到 `gh-pages` 分支。
+5. 部署：**`bash tools/deploy.sh "說明"`**（在 kinmen-src 的 clone 裡執行；會建置、把 dist 和 pwa 複製到 gh-pages 的 clone〔預設 `/home/claude/ghp`，沒有就自動 clone〕、改 sw.js 版本號、補 FILES 清單、兩個分支都 commit＋push，最後用 curl 確認線上版本號）。署名行用環境變數 `TRAILER` 傳入。
+   - 測試指令碼寫死 `/home/claude/kinmen`：clone 到別處就 `ln -s <clone>/kinmen /home/claude/kinmen`。
+   - 手動部署的話：把 `dist/` 的 `game.js`、`tex/`、`cars/`、`chars/`、`dem.png`、`lu.png` 和 `pwa/`（index.html、manifest.json、sw.js、icon）一起放到 `gh-pages` 分支。
    - **每次部署都要改 `sw.js` 裡的 `const C = 'wudao-<時間戳>'`**，不然玩家手機會一直讀舊版快取。
    - 新增檔案要加進 `sw.js` 的 FILES 清單。
    - commit 結尾加署名行，`git -c push.negotiate=true push`。
@@ -98,6 +101,17 @@
 - 測試：`test/ride.py`（加速、左右壓車、煞車、截圖）、`test/ridebot.py`（自動試駕比較機車／汽車／腳踏車）。回歸與觸控測試無錯誤。
 - 自動試駕：機車 13 m/s 跑 90 秒會在 (-360, 412) 一個 5.2×5.2 障礙物卡一次（bot 不會進彎減速；汽車轉向率不合理地大所以沒事）；9 m/s 不卡。汽車手感沒改。
 - **待使用者真機回饋**：轉向靈敏度、壓車幅度、鏡頭傾斜會不會暈。可調參數都在 `driveVehicle` 的 `aLat`、`rateMax` 和 `40_game.js` 的 `cam.bank` 係數。
+
+## 2026-11-21 上午：街區合併第 1 輪（金城鎮）
+- 新檔 `src/56_merge.js`（`mergeTowns()`，在 `applyGrime()` 之後執行；`?nomerge` 關閉、`?mergeall` 全島鄉鎮都合併〔測試用〕）。
+- 做法：鄉鎮界線（`townPolys`）內所有不會動的房子零件——批次（InstancedMesh：牆、屋頂、立面、店屋、招牌、水塔、路燈…）和獨立的靜態模型——烘成每 260 單位一格的大模型。
+  - 所有貼圖收進**貼圖陣列**（`DataArrayTexture`，每層 1024²，手機 512²）：要重複鋪貼或大張的各占一層，小張（文字招牌等）拼成共用的**貼圖集**層。法線貼圖、夜間窗燈貼圖各一組陣列。
+  - 顏色、粗糙度、金屬度、發光分組（窗燈／招牌／路燈，跟著原本材質的 emissiveIntensity 走）、立面污漬都改成頂點資料 → 整個街區只要一種材質。
+  - 樹（擋鏡頭要個別隱藏）、半透明、會動或會被隱藏的東西不併。獨立模型可加 `userData.noMerge = true` 排除（潮汐步道、天空板已加）。
+- 結果：金城鎮 2864 個零件 → 25 個模型（7.3 萬三角形）；金城視角繪圖次數約 505～540 → 462、俯瞰約 825～855 → 726。畫面與合併前一致（白天、夜間窗燈都比對過）。
+- 除錯 API：`mergeInfo()`、`mergeCheck()`（檢查被併掉的獨立模型事後有沒有被移動／隱藏／拿掉）。測試：`test/mrg.py`、`test/mrg2.py`（七個地點的繪圖次數）、`test/mchk.py`。
+- 順手修：`34_nature.js` 樹叢用 `Math.random()` 讓每次開場佈局不同，改用固定亂數。
+- **下一輪**：剩下的繪圖大多是路人／店員／小擺設群組（Group）、交通號誌招牌、道路（每條路一個模型、有 polygonOffset）。下一步：靜態小群組也併進來、道路按格合併、確認後把其他鄉鎮打開（`MRG.towns` 加名字）。
 
 ## 已知問題
 - 浮空路段（使用者截圖，位置未知，等使用者提供地圖位置）。

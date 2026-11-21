@@ -1,0 +1,6 @@
+js='''(()=>{const T=__KINMEN__._T,scene=__KINMEN__._scene;const by={};
+for(const o of scene.children){ if(!o.isMesh||o.isInstancedMesh)continue; const m=o.material,g=o.geometry; if(!g.boundingSphere)g.computeBoundingSphere(); const r=g.boundingSphere.radius*Math.max(o.scale.x,o.scale.y,o.scale.z);
+ const k=g.type.replace('Geometry','')+' '+(Array.isArray(m)?'ARR':m.type.replace('Mesh','').replace('Material','')+(m.map?'+map':'')+(m.normalMap?'+nm':'')+(m.emissiveMap?'+em':'')+(m.transparent?'+tr':'')+(m.alphaTest?'+at':'')+(m.polygonOffset?'+po':'')+(m.depthWrite?'':'+nodw')+(m.side==2?'+ds':'')+(m.vertexColors?'+vc':'')+(m.flatShading?'+flat':'')+(m.onBeforeCompile!==T.Material.prototype.onBeforeCompile?'+obc':''))+' r'+(r<3?'<3':r<12?'<12':r<60?'<60':r<400?'<400':'big')+' nm:'+o.name+(o.visible?'':' HID')+(o.castShadow?' cs':'')+(o.receiveShadow?' rs':'')+(o.renderOrder?' ro'+o.renderOrder:'')+(o.frustumCulled?'':' nofc')+' ud:'+Object.keys(o.userData).filter(k=>k!='_c').join(',');
+ const e=by[k]||(by[k]={c:0,t:0});e.c++;e.t+=(g.index?g.index.count:g.attributes.position.count)/3;}
+return Object.entries(by).sort((a,b)=>b[1].c-a[1].c).map(([k,v])=>v.c+'  '+k+'  tris'+Math.round(v.t));})()'''
+r=K(js); print(len(r)); print('\n'.join(r[:70]))

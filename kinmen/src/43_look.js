@@ -38,7 +38,7 @@ function applyGrime() {
   { const rt = photoGray('roof', 205, 1.5); if (rt) { mTile.map = rt; const nn = photoTex('roof_n', false); if (nn) { mTile.normalMap = nn; mTile.normalScale = new THREE.Vector2(1, 1); } mTile.needsUpdate = true; } }
   if (PHOTO.img.brick) { const c = brickTex.image; c.width = c.height = 512; const g = c.getContext('2d'); g.drawImage(PHOTO.img.brick, 0, 0, 512, 512); g.globalCompositeOperation = 'soft-light'; g.fillStyle = 'rgba(255,170,130,0.55)'; g.fillRect(0, 0, 512, 512); g.globalCompositeOperation = 'source-over'; brickTex.needsUpdate = true; const nn = photoTex('brick_n', false); if (nn) { mBrick.normalMap = nn; mBrick.normalScale = new THREE.Vector2(0.8, 0.8); mBrick.needsUpdate = true; } }
   const t2 = grimeTex(); t2.wrapS = THREE.RepeatWrapping; t2.wrapT = THREE.ClampToEdgeWrapping; mFacade.onBeforeCompile = sh => { sh.uniforms.grime = { value: t2 }; sh.fragmentShader = 'uniform sampler2D grime;\n' + sh.fragmentShader.replace('#include <map_fragment>', '#include <map_fragment>\n  diffuseColor.rgb *= mix(0.78, 1.0, smoothstep(0.0, 0.18, fract(vMapUv.y))) * (0.9 + 0.1 * texture2D(grime, vMapUv * 0.37).r);'); };
-  mFacade.needsUpdate = true;
+  mFacade.userData.grime = t2; mFacade.needsUpdate = true;
   repaintFacades();
   const fab = canvasTex(64, 64, g => { const im = g.createImageData(64, 64); for (let y = 0; y < 64; y++) for (let x = 0; x < 64; x++) { const v = 220 + ((x + y) % 2) * 12 + hash2(x, y) * 23, i = (y * 64 + x) * 4; im.data[i] = im.data[i + 1] = im.data[i + 2] = v; im.data[i + 3] = 255; } g.putImageData(im, 0, 0); }, true); fab.repeat.set(6, 6); mPerson.map = fab; mPerson.needsUpdate = true;
 }
